@@ -199,3 +199,61 @@ rollout workers  ->  bounded queue  ->  learner
 
 The code for all five parts is now written, a day ahead of the first schedule. The rest of
 the week is running it on Modal; see `docs/Runbook.md`.
+
+## Day 1 (Nov 9-10) - First contact with real GPUs
+
+Everything planned for Day 1 is done: both pull requests merged, 42 tests passing in the
+Codespace, Modal account and secrets set up, server image built, and a 10-step probe run on
+two H100s.
+
+### Two things that went differently from the plan
+
+- **Modal client too old.** The starter pins `modal` 1.5.5, and a new Modal workspace uses
+  image builder `2026.10`, which that client refuses. Fixed with
+  `uv lock --upgrade-package modal` (now 1.6.3). Only `modal` and one helper package changed;
+  the pinned `tinker==0.24.0` is untouched. This is the kind of drift a pinned course repo
+  picks up within weeks, and the reason lockfiles sometimes need a targeted upgrade.
+- **First start is slow.** The first request to a new server downloads the Qwen weights into
+  a Modal volume before anything else happens: several quiet minutes. Later starts reuse them.
+
+### The probe (`probe_p2b`: GRPO, 8 tasks x 8 rollouts, 10 steps)
+
+| Check | Result |
+|---|---|
+| Baseline evaluation at step 0 | Present: success rate 0.30, pass@4 0.60 on 20 tasks |
+| One training record per step, evaluation every 2 steps | Yes, steps 1-10 |
+| `train/importance_weight_mean` | 1.000 on every step, std about 0.02 |
+| `train/grad_norm` | 0.07-0.14 (clip limit is 1.0) |
+| Sanity warnings | None |
+| Step time after warm-up | About 30-70 s, so 50 steps is about 40 minutes |
+| Resumable checkpoint | Saved at step 10 |
+
+How to read it:
+
+- **Importance weight near 1 is the alignment check.** In a synchronous run the policy that
+  sampled a token is the policy being trained, so the ratio of their probabilities should be
+  1. It is, which confirms the off-by-one handling in `datagen.py` on real data. A wrong
+  alignment would compare each log-probability with a different token and the ratio would be
+  far from 1.
+- **Why not exactly 1?** Sampling runs in vLLM and training in Megatron. The two engines
+  compute the same model with slightly different numerics, so single tokens range from about
+  0.45 to 2.0 while the mean stays at 1.
+- **Degenerate groups appeared** (0-25% per step): groups where all eight rollouts got the
+  same reward and were skipped, exactly as designed.
+- **Evaluation did not improve** (0.30 to 0.325). Expected: ten small updates at a learning
+  rate of 1e-5 are a wiring test, not training. The 50-step runs are where the curve should
+  rise.
+- **The untrained model uses almost its whole step budget** (`eval/avg_steps` about 8.8). It
+  is not bisecting yet. Whether it learns to is the question the Day 2 runs answer.
+- `rollout_train_logprobs_abs_diff_max` of about 20.6 looks alarming but is very likely a
+  server-side metric that includes prompt tokens, where our side records 0 on purpose. This
+  is an inference from the numbers, not something checked in the server code.
+
+### Spend so far
+
+Roughly $5: the image build on one H100 and about 12 minutes of two H100s for the probe.
+The exact figure is on the Modal dashboard.
+
+### Next
+
+Day 2 in `docs/Runbook.md`: `p2a`, `p2b` and `p41` in parallel on three servers.
