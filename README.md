@@ -4,7 +4,8 @@
 > Assignment 3, built on the course starter at
 > [cmu-agents/assignment-3](https://github.com/cmu-agents/assignment-3). It is not a course
 > submission. The week plan is in [docs/Plan.md](docs/Plan.md) and the learning log in
-> [docs/Learning-Progress.md](docs/Learning-Progress.md). Everything below is the original
+> [docs/Learning-Progress.md](docs/Learning-Progress.md). The Modal infrastructure journal is
+> [docs/cloud-walker-Modal.md](docs/cloud-walker-Modal.md). Everything below is the original
 > starter README.
 
 <p align="center">
