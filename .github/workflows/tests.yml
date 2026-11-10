@@ -1,0 +1,19 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync
+      # Widened one part at a time. Once Part 3 lands this becomes plain `uv run pytest`.
+      - name: Tests for the parts finished so far
+        run: uv run pytest tests/test_envs.py

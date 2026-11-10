@@ -1,0 +1,10 @@
+{
+  "name": "cmu-11-768-assignment-3",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "postCreateCommand": "pip install --user uv && uv sync --extra modal",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "charliermarsh.ruff"]
+    }
+  }
+}

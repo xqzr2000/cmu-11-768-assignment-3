@@ -1,5 +1,12 @@
 # scottyrl
 
+> **About this repository.** This is Russell's independent learning run of CMU 11-768
+> Assignment 3, built on the course starter at
+> [cmu-agents/assignment-3](https://github.com/cmu-agents/assignment-3). It is not a course
+> submission. The week plan is in [docs/Plan.md](docs/Plan.md) and the learning log in
+> [docs/Learning-Progress.md](docs/Learning-Progress.md). Everything below is the original
+> starter README.
+
 <p align="center">
   <img
     src="assets/scottyrl-logo.webp"
