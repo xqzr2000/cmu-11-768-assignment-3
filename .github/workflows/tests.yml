@@ -14,6 +14,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: uv sync
-      # Widened one part at a time. Once Part 3 lands this becomes plain `uv run pytest`.
-      - name: Tests for the parts finished so far
-        run: uv run pytest tests/test_envs.py tests/test_part1_pipeline.py tests/test_interfaces.py -k "not collect_group and not groups_to_batch"
+      - run: uv run pytest

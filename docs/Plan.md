@@ -9,24 +9,41 @@ Claude writes the code; Russell runs it in Codespaces, owns the Modal account, a
 | Topic | Decision |
 |---|---|
 | Starter code | Imported from `cmu-agents/assignment-3` with its history; the `upstream` remote points there |
-| Coding | Claude, test-first, one branch and pull request per part |
+| Coding | Claude; Part 1 in one pull request, Parts 2 and 3 in a second |
 | Training backend | Modal, using the course's own launch scripts unchanged |
 | Budget | About $250 for all seven runs (Starter plan gives $30 of credit per month) |
 | Model and configs | Unchanged: `Qwen/Qwen3.5-4B`, LoRA rank 32, provided YAML configs and run names |
 
+## Our adaptations
+
+Same approach as Assignments 1 and 2: keep everything under our own control except what
+cannot be, which here is the H100s.
+
+| Course setup | Ours |
+|---|---|
+| Modal GPUs through the course launch scripts | Same. Rented on Russell's own Modal account; this is the one external dependency |
+| Hidden grading suite, `package_submission.py` | Not used. The public contract tests plus our own offline dry run stand in |
+| Adapter published to Hugging Face for the graders | Skipped. The adapter is downloaded from the Modal volume and evaluated from the local copy |
+| Weights & Biases charts | Skipped. Plots are made from the `runs/*.jsonl` logs in this repo |
+| Report submitted to the course | Written to `docs/Report.md` |
+
+Model, LoRA rank, environments, algorithms, configs and run names are unchanged, so the
+results are comparable with the course's.
+
 ## Schedule
 
-Each day is sized for about an hour of your time. GPU runs keep going after you step away.
+All code is written up front; the week is for running it. Each day is about an hour of your
+time. Commands are in [Runbook.md](Runbook.md).
 
-| Day | Claude delivers | You do | Modal cost |
-|---|---|---|---|
-| 1 | Repo scaffold, Part 1 (`advantages.py`, `datagen.py`) | Open a Codespace, run `uv run pytest`, merge the Part 1 PR, sign up for Modal | $0 |
-| 2 | Part 2 (`train/common.py`, `tinker_adapter.py`, `train/sync.py`) | Merge, run tests, `modal setup`, build the image with the smoke test | ~$2 |
-| 3 | Probe commands and what to look for | 10-step probe, then `p2a`, `p2b`, `p41` in parallel on three sync apps | ~$30 |
-| 4 | Part 3 (`train/async_grpo.py`) | Merge, run tests, probe, then `p3` and both `p43` runs in parallel on three async apps | ~$30 |
-| 5 | TextCraft checklist | Short probe, then launch `p5` and leave it running (6-8 hours) | ~$100-130 |
-| 6 | Evaluation and export commands | Export the adapter, run the four evaluations, stop every app | ~$10-20 |
-| 7 | Plots and report from the run logs | Read the report, close out | $0 |
+| Day | You do | Modal cost |
+|---|---|---|
+| 1 | Merge the pull requests, open a Codespace, run the tests, sign up for Modal, add secrets, build the image, 10-step probe | ~$5 |
+| 2 | `p2a`, `p2b`, `p41` in parallel on three sync servers | ~$30 |
+| 3 | Async probe, then `p3` and both `p43` runs in parallel on three async servers | ~$30 |
+| 4 | TextCraft probe, then launch `p5` and leave it running (6-8 hours) | ~$100-130 |
+| 5 | Download the adapter, run the four evaluations, stop every app, push the logs | ~$10-20 |
+| 6 | Read the report Claude builds from the logs | $0 |
+| 7 | Spare day for a rerun | - |
 
 Running three Number Search servers at once uses 6 H100s, inside the Starter plan's limit of 10.
 
@@ -43,10 +60,3 @@ Running three Number Search servers at once uses 6 H100s, inside the Starter pla
 Kept as Codespaces secrets, not in a `.env` file:
 
 - `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET` (from the Modal dashboard; these replace `modal setup`)
-- `HF_TOKEN` (Day 6, to publish the Part 5 adapter)
-- `WANDB_API_KEY` (optional live charts)
-
-## Not in scope
-
-This is an independent learning run of the assignment, not a submission for credit.
-The hidden grading suite and `package_submission.py` are not used.
