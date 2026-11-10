@@ -32,8 +32,10 @@ def extension_suffix(accumulated: list[int], prompt_tokens: list[int]) -> list[i
         extension_suffix([1, 2, 3], [1, 2])          -> None
         extension_suffix([], [1, 2])                 -> [1, 2]  (an empty sequence is a prefix of anything)
     """
-    # TODO(student): implement this function.
-    raise NotImplementedError
+    n = len(accumulated)
+    if len(prompt_tokens) < n or prompt_tokens[:n] != accumulated:
+        return None
+    return list(prompt_tokens[n:])
 
 
 def stitch_trajectory(traj: Trajectory) -> list[TokenSequence]:
@@ -78,8 +80,69 @@ def stitch_trajectory(traj: Trajectory) -> list[TokenSequence]:
 
     Returns: list of TokenSequence (possibly empty).
     """
-    # TODO(student): implement this function.
-    raise NotImplementedError
+    sequences: list[TokenSequence] = []
+
+    # The sequence being built, one entry per TOKEN (not per target): whether
+    # the policy sampled it, and its sampling logprob. The shift to target
+    # positions happens once, in _emit.
+    tokens: list[int] = []
+    sampled: list[int] = []
+    logprobs: list[float] = []
+
+    for call in traj.calls:
+        if len(call.completion_logprobs) != len(call.completion_tokens):
+            raise ValueError(
+                "completion_logprobs and completion_tokens differ in length: "
+                f"{len(call.completion_logprobs)} vs {len(call.completion_tokens)}"
+            )
+
+        suffix = extension_suffix(tokens, call.prompt_tokens)
+        if suffix is None:
+            # Extension broken: close the current sequence and restart from
+            # this call's full prompt.
+            _emit(sequences, tokens, sampled, logprobs)
+            tokens, sampled, logprobs = [], [], []
+            suffix = list(call.prompt_tokens)
+
+        # Context tokens (prompt, env observations): never trained on.
+        tokens.extend(suffix)
+        sampled.extend([0] * len(suffix))
+        logprobs.extend([0.0] * len(suffix))
+
+        # Completion tokens: the policy's own actions.
+        tokens.extend(call.completion_tokens)
+        sampled.extend([1] * len(call.completion_tokens))
+        logprobs.extend(float(lp) for lp in call.completion_logprobs)
+
+    _emit(sequences, tokens, sampled, logprobs)
+    return sequences
+
+
+def _emit(
+    out: list[TokenSequence],
+    tokens: list[int],
+    sampled: list[int],
+    logprobs: list[float],
+) -> None:
+    """Append the finished sequence to `out` if there is anything to train on.
+
+    Position j of mask/logprobs/advantages describes target tokens[j+1], so
+    the per-token lists are shifted left by one. Token 0 has no slot: nothing
+    precedes it, so it is never a prediction target.
+    """
+    if len(tokens) < 2:
+        return
+    mask = sampled[1:]
+    if not any(mask):
+        return
+    out.append(
+        TokenSequence(
+            tokens=list(tokens),
+            mask=list(mask),
+            logprobs=[lp if m else 0.0 for lp, m in zip(logprobs[1:], mask)],
+            advantages=[0.0] * len(mask),
+        )
+    )
 
 
 def trajectory_to_training_sequences(traj: Trajectory, advantage: float) -> list[TokenSequence]:
@@ -88,5 +151,8 @@ def trajectory_to_training_sequences(traj: Trajectory, advantage: float) -> list
     position stays 0.0. (In REINFORCE/GRPO, all tokens the policy generated
     in an episode share the episode-level advantage.)
     """
-    # TODO(student): implement this function.
-    raise NotImplementedError
+    advantage = float(advantage)
+    sequences = stitch_trajectory(traj)
+    for seq in sequences:
+        seq.advantages = [advantage if m else 0.0 for m in seq.mask]
+    return sequences

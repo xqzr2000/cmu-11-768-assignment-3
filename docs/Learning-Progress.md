@@ -48,3 +48,82 @@ GPUs instead of buying tokens.
 
 `uv run pytest` on the untouched starter: 12 of 25 tests pass, 13 fail with
 `NotImplementedError`. Those 13 are the six files this repo fills in.
+
+## Day 1 - Part 1: the data pipeline
+
+Files: `scottyrl/advantages.py`, `scottyrl/datagen.py`. Tests: `tests/test_part1_pipeline.py`
+(ours, written first) plus the two course tests for this part.
+
+```bash
+uv run pytest tests/test_part1_pipeline.py tests/test_interfaces.py -k "part1 or advantages or datagen"
+```
+
+### Advantages: how good was this episode, compared with what?
+
+A reward of 1 on an easy task says little; a reward of 1 on a task the model usually fails
+says a lot. The advantage is the reward measured against a baseline.
+
+- **REINFORCE** uses no baseline: advantage = reward. Successful episodes are reinforced,
+  failed ones contribute nothing. Correct on average, but noisy.
+- **GRPO** runs a *group* of G rollouts of the same task and subtracts the group's mean
+  reward. With rewards `[1, 0, 0, 0]` the mean is 0.25 and the advantages are
+  `[0.75, -0.25, -0.25, -0.25]`: the one success is pushed up, the failures pushed down.
+
+If every rollout in a group gets the same reward, every advantage is zero and the group
+teaches nothing. The function returns `None` for such a *degenerate* group so the trainer can
+skip it. Early in training most groups are all-fail, late in training many are all-success,
+so the fraction of degenerate groups is one of the diagnostic plots.
+
+This is the Dr.GRPO variant: no division by the group's standard deviation.
+
+### Stitching: one episode, one training sequence
+
+An episode is several model calls. Call 2's prompt is call 1's prompt, plus call 1's
+completion, plus the newly rendered tail (the environment's reply and the next turn marker).
+When that holds, the whole episode can be laid out as one long token sequence and trained in
+one pass. The docstring example:
+
+```
+call 0: prompt=[10, 11]              completion=[20, 21]
+call 1: prompt=[10, 11, 20, 21, 30]  completion=[40]
+
+tokens  = [10, 11, 20, 21, 30, 40]
+targets =     [11, 20, 21, 30, 40]     (tokens[1:])
+mask    =     [ 0,  1,  1,  0,  1]
+```
+
+The mask is 1 only where the target token was sampled by the policy. Token 30 came from the
+environment, so it is 0: the model should learn to act, not to predict the environment.
+
+**The off-by-one.** Training predicts the *next* token, so a sequence of n tokens has n-1
+targets, and position j describes `tokens[j+1]`. The code avoids index arithmetic: it keeps
+one flag and one logprob per token while building, then drops the first entry of each list
+at the end (`sampled[1:]`, `logprobs[1:]`). Token 0 is never a target because nothing
+precedes it.
+
+**When the extension breaks.** With `preserve_thinking_history: false` the chat template
+removes earlier `<think>` blocks, so the next prompt no longer starts with everything
+accumulated so far. `extension_suffix` detects this (returns `None`), the current sequence is
+closed, and a new one starts from that call's full prompt. Number Search episodes normally
+give one sequence; a think-stripped episode gives one sequence per call. Both cases are
+tested against real agent episodes.
+
+**Logprobs.** Each sampled token carries the log-probability the policy gave it at sampling
+time. The trainer later compares it with the current policy's log-probability to form the
+importance ratio. If these were attached to the wrong positions the ratio would drift far
+from 1, which is the first thing to check in a synchronous run.
+
+### Broadcasting
+
+`trajectory_to_training_sequences` copies the episode's single advantage onto every masked
+position. All tokens the policy wrote in an episode share credit for its outcome.
+
+### Status
+
+29 tests pass (12 from the starter, 2 course tests for Part 1, 15 of ours). The 11 still
+failing belong to Parts 2 and 3.
+
+### Try it
+
+Change the mask in `_emit` to `sampled[:-1]` (the wrong alignment) and run the tests. See
+which ones catch it, then change it back.
