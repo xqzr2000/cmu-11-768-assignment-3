@@ -5,13 +5,21 @@ Replace `<...>` with your own values.
 
 ## Every session
 
+- Start: `git pull`, then `uv run modal app list` to confirm nothing is running.
+- End: stop every app, `uv run modal app list` again, commit and push run logs.
+- `modal app stop` asks for confirmation; add `-y` to skip the prompt.
+- A server URL is public to anyone who has it. Do not post it; stopping the app closes it.
+
 - Check the Modal dashboard for apps still running before you start and before you leave.
 - A server bills from the moment a run connects until five minutes after it goes idle.
   `modal app stop <app>` ends that at once.
 - Start long runs inside `tmux` so they survive a closed browser tab:
   `tmux new -s run`, detach with `Ctrl-b d`, come back with `tmux attach -t run`.
 
-## Day 1 - Setup, image, probe (~$5)
+## Day 1 - Setup, image, probe (~$5) - DONE
+
+Completed Nov 10. Kept here for reference. One fix was needed first: the starter's Modal
+client was too old for a new workspace (`uv lock --upgrade-package modal`, already committed).
 
 1. Merge the open pull requests on GitHub, then create a Codespace on `main`.
 2. Run the tests. All of them should pass.
