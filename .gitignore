@@ -2,7 +2,10 @@ __pycache__/
 *.pyc
 *.egg-info/
 .pytest_cache/
-runs/
+# Run logs (runs/*.jsonl, *.json) are committed so the report can be built from them.
+runs/*_trajectories/
+runs/p5_adapter*
+runs/probe_*
 wandb/
 .venv/
 .env

@@ -127,3 +127,75 @@ failing belong to Parts 2 and 3.
 
 Change the mask in `_emit` to `sampled[:-1]` (the wrong alignment) and run the tests. See
 which ones catch it, then change it back.
+
+## Day 1 (continued) - Parts 2 and 3: the two trainers
+
+Files: `train/common.py`, `tinker_adapter.py` (one method), `train/sync.py`,
+`train/async_grpo.py`. All 25 course tests pass, plus 17 of ours, including an offline
+end-to-end dry run of both trainers (`tests/test_offline_end_to_end.py`).
+
+### The shared pieces (`train/common.py`)
+
+- `collect_group` runs G rollouts of one task at the same time with `asyncio.gather`. Each
+  rollout gets its own environment and agent. Running them together matters: the GPU server
+  batches the overlapping model calls, so eight rollouts take about as long as one.
+- `groups_to_batch` is Part 1 applied to many groups: compute each group's advantages, skip
+  degenerate groups (but still count their rewards), and flatten everything else into one
+  list of training sequences.
+
+### Talking to the training server (`submit_update`)
+
+One update is two requests: `forward_backward` (compute the loss and gradients) and
+`optim_step` (apply them with Adam). Each returns a future. The code submits **both** before
+waiting for either, because the server batches requests that arrive together; waiting for
+the first before sending the second would roughly double every step's latency.
+
+### The synchronous loop (`train/sync.py`)
+
+```
+policy = snapshot("step_000000")
+for step in 1..N:
+    groups = collect rollouts with policy      # GPUs sample, trainer idle
+    seqs   = build batch
+    if seqs:  update; policy = snapshot(step)  # GPUs train, sampling idle
+    record; evaluate if due
+```
+
+Everything is on-policy: each batch comes from the weights the previous update produced, so
+the importance ratio should sit very close to 1. If every group in a batch is degenerate
+there is nothing to learn from; the step is recorded as skipped with no update and no new
+snapshot.
+
+REINFORCE and GRPO use this same loop. Only `cfg.algo` (the advantage rule) and
+`cfg.loss_fn` differ.
+
+### The asynchronous loop (`train/async_grpo.py`)
+
+The sync loop wastes time: sampling waits during updates and the learner waits during
+rollouts. The async trainer overlaps them with a producer-consumer design:
+
+```
+rollout workers  ->  bounded queue  ->  learner
+```
+
+- **Workers** loop forever: take the next task id, capture the current `(policy, version)`
+  pair once, generate a whole group with it, put the result on the queue. Capturing the pair
+  up front means the version label is still right if a new policy is published mid-rollout.
+- **The queue is bounded.** When it is full, `await queue.put()` pauses the worker. That
+  backpressure stops workers from piling up data that would be stale by the time it is used.
+- **The learner** pulls groups until it has a batch. A group is dropped as *stale* if it was
+  sampled more than `max_staleness` versions ago, judged at the moment it is consumed. Then
+  it updates and publishes version + 1.
+- **Importance weighting** corrects the groups that are a little stale but kept: the PPO loss
+  scales each token by how much more or less likely the current policy finds it than the
+  policy that sampled it, with clipping.
+- **Evaluation** runs as a background task on a captured `(policy, version)`, so training
+  does not wait for it.
+- **Failure handling.** If a worker dies, the learner would wait forever for a batch. So the
+  learner waits on "batch ready OR a background task failed" (`_first_or_failure`), and on
+  any error cancels everything and re-raises the original exception.
+
+### What changes in the plan
+
+The code for all five parts is now written, a day ahead of the first schedule. The rest of
+the week is running it on Modal; see `docs/Runbook.md`.
