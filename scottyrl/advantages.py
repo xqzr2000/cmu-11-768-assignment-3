@@ -36,5 +36,21 @@ def compute_group_advantages(
     variant, which drops the std term to avoid biasing updates by group
     difficulty). See the handout's background section.
     """
-    # TODO(student): implement this function.
-    raise NotImplementedError
+    rewards = [float(r) for r in rewards]
+
+    if method == "reinforce":
+        return rewards
+
+    if method == "grpo":
+        if len(rewards) < 2:
+            raise ValueError(
+                f"grpo needs a group of at least 2 rollouts, got {len(rewards)}"
+            )
+        # Degenerate group: compare the rewards themselves rather than the
+        # centered values, so the check is exact and free of rounding.
+        if all(r == rewards[0] for r in rewards):
+            return None
+        baseline = sum(rewards) / len(rewards)
+        return [r - baseline for r in rewards]
+
+    raise ValueError(f"unknown advantage method: {method!r}")
