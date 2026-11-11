@@ -162,10 +162,48 @@ must be in one machine. Two separate 1xH100 rentals would not work on any provid
 
 **Not yet tested**
 
-- Three apps at once (6 H100s): do they all get capacity promptly?
 - Whether Modal preempts a container during the 6-8 hour TextCraft run, and how resume behaves.
 - 4xH100 availability in one container.
 - Pulling an adapter back with `modal volume get` and serving it with vLLM.
+
+### Nov 10-11 - Three servers at once
+
+**What we did**
+
+- Deployed the same launch script three times under different names
+  (`SKYRL_APP_NAME=scottyrl-p2a`, `-p2b`, `-p41`). Each name became its own app with its own
+  URL and its own state volume; all three shared the cached Qwen weights.
+- Ran one 50-step training job against each from three Codespace terminals. That is 6 H100s
+  held for about 45 minutes.
+- Stopped each app when its run finished and committed the logs.
+
+**What Modal did that surprised us**
+
+- All three servers got their two H100s within a few minutes of each other: the first log
+  records arrived at 06:36, 06:39 and 06:40 UTC. No waiting for capacity on a weekday night.
+- The third `modal deploy` in a row hit `App create rate limit exceeded`. The client waited
+  and retried by itself and the deploy succeeded about ten seconds later. Nothing to do.
+- `modal app stop <name> -y` prints nothing when it works. `modal app list` is the way to
+  confirm.
+
+**AWS comparison**
+
+Running three experiments side by side on EC2 would mean three GPU instances, each launched,
+prepared and later terminated, or one larger instance shared between jobs. Here it was the
+same file deployed three times with a different environment variable, and the isolation
+between runs (separate checkpoints, separate URLs) came for free.
+
+**Qwen hosting or training note**
+
+- Each server loads its own copy of the model onto its own GPUs, but the download happened
+  only once, on Day 1. The shared `scottyrl-hf-cache` volume is what made the second and
+  later cold starts quick.
+- Each run saved a LoRA snapshot after nearly every step (about 50 per run) plus a resumable
+  checkpoint every 10 optimizer steps, all on that app's state volume.
+
+**Spend so far:** roughly $30 (estimate: about $5 on Day 1 plus three 2xH100 servers for
+about 50 minutes each including start-up and the idle window; the exact figure is on the
+Modal dashboard).
 
 ## Entry template
 

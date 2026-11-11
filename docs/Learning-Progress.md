@@ -257,3 +257,84 @@ The exact figure is on the Modal dashboard.
 ### Next
 
 Day 2 in `docs/Runbook.md`: `p2a`, `p2b` and `p41` in parallel on three servers.
+
+## Day 2 (Nov 10-11) - The three synchronous runs
+
+All three finished their 50 steps. Logs are in `runs/`. This is the first evidence that the
+model's weights changed in a useful direction.
+
+### Results
+
+Held-out evaluation: 50 validation tasks, 4 rollouts each.
+
+| Run | Algorithm | Episodes per step | Success at step 0 | Step 20 | Step 30 | Step 50 | pass@4 at step 50 |
+|---|---|---|---|---|---|---|---|
+| `p2a` | REINFORCE | 8 (8 tasks x 1) | 0.340 | 0.430 | 0.935 | 0.955 | 1.00 |
+| `p2b` | GRPO, group 8 | 64 (8 tasks x 8) | 0.355 | 0.620 | 0.995 | 0.990 | 1.00 |
+| `p41` | GRPO, group 2 | 16 (8 tasks x 2) | 0.330 | 0.385 | 0.505 | 0.565 | 0.92 |
+
+The step-0 numbers differ slightly between runs (0.33 to 0.355) although all three start
+from the same untrained model. That spread is sampling noise, and it sets the scale for
+reading everything else: differences of a few points mean nothing.
+
+### What the curves say
+
+- **The model learned the task.** Two runs went from about one success in three to nearly
+  every episode. Average steps per episode fell from about 8.6 to 7.6 at the same time.
+- **Learning came as a jump, not a ramp.** Both `p2a` and `p2b` were still near baseline at
+  step 10 and essentially solved by step 30.
+- **GRPO with 8 rollouts was the cleanest.** It reached 0.995 and stayed there.
+- **Group size 2 learned much more slowly.** It was still climbing at step 50.
+
+### Why group size matters so much: degenerate groups
+
+A GRPO group teaches something only when its rollouts got different rewards. With a success
+rate p and a group of 2, the chance that both rollouts agree is p^2 + (1-p)^2. At p = 0.35
+that is 0.55, so more than half the groups are thrown away before training starts. The log
+agrees: `p41` discarded 53-64% of its groups in every stretch of the run. A group of 8 at the
+same success rate is almost never all-same (about 3%), so `p2b` used nearly everything it
+collected early on.
+
+The opposite happens at the end. Once `p2b` succeeds 99% of the time, almost every group is
+all-success: 97.5% of its groups were degenerate over the last 20 steps, and 18 of its 50
+steps were skipped outright with no update. That is not a fault. The baseline has nothing
+left to compare against, so the run stops changing the model. It also means roughly the last
+third of that run's GPU time bought nothing.
+
+### REINFORCE did better than expected
+
+`p2a` trained on only 8 episodes per step and still reached 0.955. With rewards of 0 or 1
+and no baseline, REINFORCE simply pushes up whatever the successful episodes did and ignores
+the failures. On a task this simple that is enough. Its curve was rougher on the way (it
+dipped to 0.275 at step 10) and it ended a little below GRPO-8. One run each is too little
+to rank them firmly; a second seed could reorder `p2a` and `p41`.
+
+### Sanity numbers
+
+| Check | `p2a` | `p2b` | `p41` |
+|---|---|---|---|
+| `importance_weight_mean`, whole run | 1.000 | 1.000 | 1.000 |
+| `importance_weight_std` | 0.014-0.023 | 0.012-0.023 | 0.020-0.023 |
+| `grad_norm` (clip is 1.0) | 0.15-0.27 | 0.05-0.10 | 0.23-0.34 |
+| Skipped steps | 0 | 18 | 1 |
+
+On-policy all the way through, as a synchronous run should be. `p2b`'s smaller gradient norm
+fits its larger batch: 64 episodes average out more noise than 8 or 16.
+
+### Where the time went
+
+Each run took 43-49 minutes. Inside `p2a`, about 11 minutes were rollouts and about 11
+minutes were updates; the rest was evaluation and saving snapshots. Sampling and training
+take turns, so each GPU role sits idle while the other works. Overlapping them is the whole
+point of the asynchronous trainer on Day 3.
+
+### Open question for the report
+
+Episodes got longer in tokens while getting shorter in steps: mean sequence length went from
+about 450 to 850-950 tokens in `p2a` and `p2b`. The model is writing more per turn than it
+did before training. The transcripts under `runs/*_trajectories/` (kept in the Codespace,
+not in git) will show what it is writing; worth comparing one early and one late episode.
+
+### Next
+
+Day 3 in `docs/Runbook.md`: the asynchronous probe, then `p3` and the two `p43` runs.
