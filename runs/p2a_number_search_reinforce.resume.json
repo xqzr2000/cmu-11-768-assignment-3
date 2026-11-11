@@ -1,0 +1,1 @@
+{"base_model": "Qwen/Qwen3.5-4B", "lora_rank": 32, "step": 50, "optimizer_steps": 50, "state_path": "tinker://model_8dc8ebd5/weights/resume_000050", "resumes": 0}

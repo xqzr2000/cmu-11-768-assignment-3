@@ -1,0 +1,271 @@
+{
+  "run_name": "p2a_number_search_reinforce",
+  "base_model": "Qwen/Qwen3.5-4B",
+  "lora_rank": 32,
+  "completed_steps": 50,
+  "resumes": 0,
+  "snapshots": [
+    {
+      "name": "baseline",
+      "path": "tinker://model_8dc8ebd5/baseline",
+      "completed_steps": 0
+    },
+    {
+      "name": "step_000000",
+      "path": "tinker://model_8dc8ebd5/step_000000",
+      "completed_steps": 0
+    },
+    {
+      "name": "step_000001",
+      "path": "tinker://model_8dc8ebd5/step_000001",
+      "completed_steps": 1
+    },
+    {
+      "name": "step_000002",
+      "path": "tinker://model_8dc8ebd5/step_000002",
+      "completed_steps": 2
+    },
+    {
+      "name": "step_000003",
+      "path": "tinker://model_8dc8ebd5/step_000003",
+      "completed_steps": 3
+    },
+    {
+      "name": "step_000004",
+      "path": "tinker://model_8dc8ebd5/step_000004",
+      "completed_steps": 4
+    },
+    {
+      "name": "step_000005",
+      "path": "tinker://model_8dc8ebd5/step_000005",
+      "completed_steps": 5
+    },
+    {
+      "name": "step_000006",
+      "path": "tinker://model_8dc8ebd5/step_000006",
+      "completed_steps": 6
+    },
+    {
+      "name": "step_000007",
+      "path": "tinker://model_8dc8ebd5/step_000007",
+      "completed_steps": 7
+    },
+    {
+      "name": "step_000008",
+      "path": "tinker://model_8dc8ebd5/step_000008",
+      "completed_steps": 8
+    },
+    {
+      "name": "step_000009",
+      "path": "tinker://model_8dc8ebd5/step_000009",
+      "completed_steps": 9
+    },
+    {
+      "name": "step_000010",
+      "path": "tinker://model_8dc8ebd5/step_000010",
+      "completed_steps": 10
+    },
+    {
+      "name": "step_000011",
+      "path": "tinker://model_8dc8ebd5/step_000011",
+      "completed_steps": 11
+    },
+    {
+      "name": "step_000012",
+      "path": "tinker://model_8dc8ebd5/step_000012",
+      "completed_steps": 12
+    },
+    {
+      "name": "step_000013",
+      "path": "tinker://model_8dc8ebd5/step_000013",
+      "completed_steps": 13
+    },
+    {
+      "name": "step_000014",
+      "path": "tinker://model_8dc8ebd5/step_000014",
+      "completed_steps": 14
+    },
+    {
+      "name": "step_000015",
+      "path": "tinker://model_8dc8ebd5/step_000015",
+      "completed_steps": 15
+    },
+    {
+      "name": "step_000016",
+      "path": "tinker://model_8dc8ebd5/step_000016",
+      "completed_steps": 16
+    },
+    {
+      "name": "step_000017",
+      "path": "tinker://model_8dc8ebd5/step_000017",
+      "completed_steps": 17
+    },
+    {
+      "name": "step_000018",
+      "path": "tinker://model_8dc8ebd5/step_000018",
+      "completed_steps": 18
+    },
+    {
+      "name": "step_000019",
+      "path": "tinker://model_8dc8ebd5/step_000019",
+      "completed_steps": 19
+    },
+    {
+      "name": "step_000020",
+      "path": "tinker://model_8dc8ebd5/step_000020",
+      "completed_steps": 20
+    },
+    {
+      "name": "step_000021",
+      "path": "tinker://model_8dc8ebd5/step_000021",
+      "completed_steps": 21
+    },
+    {
+      "name": "step_000022",
+      "path": "tinker://model_8dc8ebd5/step_000022",
+      "completed_steps": 22
+    },
+    {
+      "name": "step_000023",
+      "path": "tinker://model_8dc8ebd5/step_000023",
+      "completed_steps": 23
+    },
+    {
+      "name": "step_000024",
+      "path": "tinker://model_8dc8ebd5/step_000024",
+      "completed_steps": 24
+    },
+    {
+      "name": "step_000025",
+      "path": "tinker://model_8dc8ebd5/step_000025",
+      "completed_steps": 25
+    },
+    {
+      "name": "step_000026",
+      "path": "tinker://model_8dc8ebd5/step_000026",
+      "completed_steps": 26
+    },
+    {
+      "name": "step_000027",
+      "path": "tinker://model_8dc8ebd5/step_000027",
+      "completed_steps": 27
+    },
+    {
+      "name": "step_000028",
+      "path": "tinker://model_8dc8ebd5/step_000028",
+      "completed_steps": 28
+    },
+    {
+      "name": "step_000029",
+      "path": "tinker://model_8dc8ebd5/step_000029",
+      "completed_steps": 29
+    },
+    {
+      "name": "step_000030",
+      "path": "tinker://model_8dc8ebd5/step_000030",
+      "completed_steps": 30
+    },
+    {
+      "name": "step_000031",
+      "path": "tinker://model_8dc8ebd5/step_000031",
+      "completed_steps": 31
+    },
+    {
+      "name": "step_000032",
+      "path": "tinker://model_8dc8ebd5/step_000032",
+      "completed_steps": 32
+    },
+    {
+      "name": "step_000033",
+      "path": "tinker://model_8dc8ebd5/step_000033",
+      "completed_steps": 33
+    },
+    {
+      "name": "step_000034",
+      "path": "tinker://model_8dc8ebd5/step_000034",
+      "completed_steps": 34
+    },
+    {
+      "name": "step_000035",
+      "path": "tinker://model_8dc8ebd5/step_000035",
+      "completed_steps": 35
+    },
+    {
+      "name": "step_000036",
+      "path": "tinker://model_8dc8ebd5/step_000036",
+      "completed_steps": 36
+    },
+    {
+      "name": "step_000037",
+      "path": "tinker://model_8dc8ebd5/step_000037",
+      "completed_steps": 37
+    },
+    {
+      "name": "step_000038",
+      "path": "tinker://model_8dc8ebd5/step_000038",
+      "completed_steps": 38
+    },
+    {
+      "name": "step_000039",
+      "path": "tinker://model_8dc8ebd5/step_000039",
+      "completed_steps": 39
+    },
+    {
+      "name": "step_000040",
+      "path": "tinker://model_8dc8ebd5/step_000040",
+      "completed_steps": 40
+    },
+    {
+      "name": "step_000041",
+      "path": "tinker://model_8dc8ebd5/step_000041",
+      "completed_steps": 41
+    },
+    {
+      "name": "step_000042",
+      "path": "tinker://model_8dc8ebd5/step_000042",
+      "completed_steps": 42
+    },
+    {
+      "name": "step_000043",
+      "path": "tinker://model_8dc8ebd5/step_000043",
+      "completed_steps": 43
+    },
+    {
+      "name": "step_000044",
+      "path": "tinker://model_8dc8ebd5/step_000044",
+      "completed_steps": 44
+    },
+    {
+      "name": "step_000045",
+      "path": "tinker://model_8dc8ebd5/step_000045",
+      "completed_steps": 45
+    },
+    {
+      "name": "step_000046",
+      "path": "tinker://model_8dc8ebd5/step_000046",
+      "completed_steps": 46
+    },
+    {
+      "name": "step_000047",
+      "path": "tinker://model_8dc8ebd5/step_000047",
+      "completed_steps": 47
+    },
+    {
+      "name": "step_000048",
+      "path": "tinker://model_8dc8ebd5/step_000048",
+      "completed_steps": 48
+    },
+    {
+      "name": "step_000049",
+      "path": "tinker://model_8dc8ebd5/step_000049",
+      "completed_steps": 49
+    },
+    {
+      "name": "step_000050",
+      "path": "tinker://model_8dc8ebd5/step_000050",
+      "completed_steps": 50
+    }
+  ],
+  "final_sampler_path": "tinker://model_8dc8ebd5/step_000050",
+  "resumable_state_path": "tinker://model_8dc8ebd5/weights/resume_000050"
+}
