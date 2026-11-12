@@ -15,6 +15,12 @@ Replace `<...>` with your own values.
   `modal app stop <app>` ends that at once.
 - Start long runs inside `tmux` so they survive a closed browser tab:
   `tmux new -s run`, detach with `Ctrl-b d`, come back with `tmux attach -t run`.
+  The Codespace image does not include it: `sudo apt-get update && sudo apt-get install -y tmux`.
+  For runs under an hour, two VS Code terminal tabs are enough.
+- `<... url>` in a command is a placeholder. Replace the whole thing, brackets included, with
+  the URL that `modal deploy` printed; bash reads a bare `<` as a file redirect.
+- Stop an app only after its run has printed `[checkpoints] wrote ...`. Stopping kills any
+  run still using it.
 
 ## Day 1 - Setup, image, probe (~$5) - DONE
 
@@ -86,7 +92,10 @@ git add runs/*.jsonl runs/*.json && git commit -m "Add Part 2 and 4.1 run logs" 
 
 If a run crashes, rerun the same command with `--set train.resume=true` against the same app.
 
-## Day 3 - Asynchronous runs (~$30)
+## Day 3 - Asynchronous runs (~$30) - DONE
+
+Completed Nov 12: `p3` with its probe on Nov 11, both `p43` runs with a probe each on Nov 12,
+on two servers (`scottyrl-p43iw`, `scottyrl-p43noiw`). Kept here for reference.
 
 Probe first on one async server (about 10 minutes), then the three runs in parallel.
 

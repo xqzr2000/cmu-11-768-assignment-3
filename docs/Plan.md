@@ -11,7 +11,7 @@ Claude writes the code; Russell runs it in Codespaces, owns the Modal account, a
 | Starter code | Imported from `cmu-agents/assignment-3` with its history; the `upstream` remote points there |
 | Coding | Claude; Part 1 in one pull request, Parts 2 and 3 in a second |
 | Training backend | Modal, using the course's own launch scripts unchanged |
-| Budget | About $250 for all seven runs (Starter plan gives $30 of credit per month) |
+| Budget | About $250 for all seven runs (Starter plan gives $30 of credit per month). Modal spend limit set to $300 on Nov 12 as a safety margin, not as extra budget |
 | Model and configs | Unchanged: `Qwen/Qwen3.5-4B`, LoRA rank 32, provided YAML configs and run names |
 
 ## Our adaptations
@@ -39,8 +39,8 @@ time. Commands are in [Runbook.md](Runbook.md).
 |---|---|---|
 | 1 (done Nov 10) | Merge the pull requests, open a Codespace, run the tests, sign up for Modal, add secrets, build the image, 10-step probe | ~$5 |
 | 2 (done Nov 11) | `p2a`, `p2b`, `p41` in parallel on three sync servers | ~$30 |
-| 3 (part done Nov 11) | Async probe and `p3` done. Both `p43` runs still to do; held back by Modal's $20 spend limit | ~$30 |
-| 4 | TextCraft probe, then launch `p5` and leave it running (6-8 hours) | ~$100-130 |
+| 3 (done Nov 12) | Async probe and `p3` on Nov 11 (held to one run by Modal's $20 spend limit); limit raised, both `p43` runs probed and run on Nov 12 | ~$30 |
+| 4 | Install `tmux`, TextCraft probe, then launch `p5` and leave it running (6-8 hours) | ~$100-130 |
 | 5 | Download the adapter, run the four evaluations, stop every app, push the logs | ~$10-20 |
 | 6 | Read the report Claude builds from the logs | $0 |
 | 7 | Spare day for a rerun | - |
@@ -52,6 +52,8 @@ Running three Number Search servers at once uses 6 H100s, inside the Starter pla
 1. No GPU until the tests for that part pass locally.
 2. A 10-step probe (`--set train.num_steps=10 --set train.run_name=probe_<name>`) before every full run.
 3. `uv run modal app stop <app>` as soon as a run ends. An idle server bills for five more minutes.
+   "Ends" means its terminal has printed `[checkpoints] wrote ...`: stopping an app kills any
+   run still using it (Nov 12).
 4. TextCraft is launched once, only after the async trainer has worked on Number Search.
 5. Stop and reassess if the Modal dashboard passes $200.
 
