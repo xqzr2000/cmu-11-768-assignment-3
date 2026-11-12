@@ -39,7 +39,7 @@ time. Commands are in [Runbook.md](Runbook.md).
 |---|---|---|
 | 1 (done Nov 10) | Merge the pull requests, open a Codespace, run the tests, sign up for Modal, add secrets, build the image, 10-step probe | ~$5 |
 | 2 (done Nov 11) | `p2a`, `p2b`, `p41` in parallel on three sync servers | ~$30 |
-| 3 | Async probe, then `p3` and both `p43` runs in parallel on three async servers | ~$30 |
+| 3 (part done Nov 11) | Async probe and `p3` done. Both `p43` runs still to do; held back by Modal's $20 spend limit | ~$30 |
 | 4 | TextCraft probe, then launch `p5` and leave it running (6-8 hours) | ~$100-130 |
 | 5 | Download the adapter, run the four evaluations, stop every app, push the logs | ~$10-20 |
 | 6 | Read the report Claude builds from the logs | $0 |

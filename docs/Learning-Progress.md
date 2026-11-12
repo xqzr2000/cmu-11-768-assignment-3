@@ -338,3 +338,71 @@ not in git) will show what it is writing; worth comparing one early and one late
 ### Next
 
 Day 3 in `docs/Runbook.md`: the asynchronous probe, then `p3` and the two `p43` runs.
+
+## Day 3 (Nov 11) - The asynchronous trainer on real GPUs: `p3`
+
+A 10-step probe, then the full 50-step `p3` run. The two `p43` runs are postponed: Modal's
+default spend limit on a new account is $20 a month beyond the free credit, and tonight had
+room for one run (see `cloud-walker-Modal.md`).
+
+### Same model quality in half the time
+
+`p3` and Day 2's `p2b` use the same algorithm and batch: GRPO, 8 groups of 8 rollouts per
+step, 50 steps. Only the trainer differs.
+
+| | `p2b` synchronous | `p3` asynchronous |
+|---|---|---|
+| Success at step 0 | 0.355 | 0.345 |
+| Step 10 | 0.415 | 0.445 |
+| Step 20 | 0.620 | 0.690 |
+| Step 30 | 0.995 | 0.950 |
+| Step 40 | 0.995 | 0.990 |
+| Step 50 | 0.990 | 0.990 |
+| Wall-clock time for 50 steps | 49.0 min | 24.6 min |
+| Time the learner spent waiting for data | 32.4 min | 5.1 min |
+| Time spent in updates | 11.6 min | 13.3 min |
+| Steps skipped (all groups degenerate) | 18 | 8 |
+
+The learning curves match step for step within noise. The difference is the clock: the
+synchronous learner spent two thirds of its run waiting for rollouts, and the asynchronous
+one spent a fifth. Same GPUs, same cost per minute, half the minutes.
+
+### What the async run shows that the sync run cannot
+
+- **Evaluation in the background.** The step-10 evaluation line printed after training step
+  13, labelled `eval/policy_version 10`. Training did not pause for it, and the label proves
+  it measured the policy captured at step 10, not whatever was current when it finished.
+- **Policy version and step number separate.** A skipped step does not publish a new
+  version, so by step 50 the policy was at version 42. The step-40 evaluation is labelled
+  version 39 for the same reason.
+- **Stale data, dropped.** The learner pulled 453 groups from the queue and discarded 53
+  (12%) because they were sampled more than 2 versions earlier. Those rollouts cost GPU time
+  and taught nothing.
+- **Stale data, kept and corrected.** Groups up to 2 versions old were used. The importance
+  weight still averaged 1.000, with a wider spread than the sync run (0.025 against 0.019),
+  and one token at step 22 reached a ratio of 4.98, far outside anything seen on Day 2.
+  That is what "slightly off-policy" looks like in numbers, and it is what the PPO loss's
+  ratio and clipping are for.
+
+### The end of the run
+
+From step 34 the `[sanity]` warning about degenerate groups fired on most steps, and 7 of
+the last 8 steps were skipped. Not a fault: the policy succeeds on 99% of tasks, so nearly
+every group is all-success and carries no signal. In the skipped steps
+`learner_wait_frac` is 1, since there was no update and the learner only waited.
+
+One line is easy to misread: `[resume] checkpointed at step 41 (40 optimizer steps)`. Step
+38 was skipped, so the 40th optimizer step happened at iteration 41. Iterations and
+optimizer steps are different counters.
+
+### The probe, for the record
+
+`probe_p3`: 10 steps, `groups_consumed` 80, `groups_dropped_stale` 24, clean shutdown. The
+drop rate was higher than in the full run (23% against 12%) because the first update on a
+cold server took 112 seconds, and the workers kept filling the queue with version-0 data
+while it ran.
+
+### Still to run
+
+`p43_number_search_async_stale4_iw` and `p43_number_search_async_stale4_noiw`: accept data up
+to 4 versions old, with and without the importance-weighting correction.
