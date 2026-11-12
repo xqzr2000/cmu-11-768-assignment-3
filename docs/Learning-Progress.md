@@ -405,4 +405,100 @@ while it ran.
 ### Still to run
 
 `p43_number_search_async_stale4_iw` and `p43_number_search_async_stale4_noiw`: accept data up
-to 4 versions old, with and without the importance-weighting correction.
+to 4 versions old, with and without the importance-weighting correction. Done on Nov 12; see
+the next entry.
+
+## Day 3, finished (Nov 12) - Staleness 4, with and without importance weighting
+
+Modal raised the spend limit, so Day 3 was finished as planned: a 10-step probe of each
+`p43` config, then both 50-step runs in parallel on two 2xH100 async servers. `p3` was kept
+from Nov 11; it was clean, so there was nothing to gain from rerunning it.
+
+The two runs differ only in the loss:
+
+- **`iw`** uses the PPO loss, as `p3` did: each token's update is scaled by the ratio
+  between the current policy's probability and the sampling policy's, clipped to a narrow
+  range.
+- **`noiw`** uses advantage-weighted cross-entropy: every token the policy wrote is pushed
+  up or down by the advantage alone, as if it had been sampled by the current policy. This
+  was the first time that loss ran on real GPUs; the probe confirmed it (`loss_fn_is_iw` 0,
+  normal gradient norms).
+
+The course runs these one after the other against the `p3` deployment. We ran them side by
+side on two fresh servers with the same launch script, which changes the clock time and
+nothing else.
+
+### Results
+
+Held-out evaluation: 50 validation tasks, 4 rollouts each.
+
+| Step | `p3` (staleness 2, PPO) | `iw` (staleness 4, PPO) | `noiw` (staleness 4, no IW) |
+|---|---|---|---|
+| 0 | 0.345 | 0.330 | 0.350 |
+| 10 | 0.445 | 0.450 | 0.405 |
+| 20 | 0.690 | 0.580 | 0.780 |
+| 30 | 0.950 | 0.850 | 0.995 |
+| 40 | 0.990 | 0.965 | 0.980 |
+| 50 | 0.990 | 0.985 | 1.000 |
+
+| | `p3` | `iw` | `noiw` |
+|---|---|---|---|
+| Groups consumed / dropped as stale | 400 / 53 | 400 / 0 | 400 / 1 |
+| Steps skipped (all groups degenerate) | 8 | 1 | 11 |
+| Policy version at step 50 | 42 | 49 | 39 |
+| Wall-clock time for 50 steps | 24.6 min | 22.5 min | 23.7 min |
+| Learner waiting for data, total | 5.1 min | 1.2 min | 7.1 min |
+| `importance_weight_std`, mean over the run | 0.025 | 0.029 | 0.039 |
+| `importance_weight_std`, highest step | 0.058 | 0.049 | 0.127 |
+| Largest single-token ratio | 4.98 | 3.75 | 5.47 |
+| Smallest single-token ratio | 0.121 | 0.315 | 0.013 |
+
+### What the numbers say
+
+- **All three reached the same place.** Every run ended at 0.985-1.0. Raising the
+  staleness limit from 2 to 4 cost nothing in final quality on this task, with or without
+  the correction.
+- **The order on the way up is not evidence.** `noiw` crossed 0.9 first and `iw` last, but
+  Day 2 showed that the timing of the jump moves by several steps between runs, and each
+  configuration ran once. A second seed could reverse the order.
+- **Staleness 4 kept almost everything.** `p3` threw away 53 groups (12%) that were 3 or
+  more versions old. At a limit of 4 the learner kept all of them, and the `iw` learner was
+  hardly ever idle: 1.2 minutes of waiting in 22.5.
+- **The uncorrected run drifted further from its sampler.** In `noiw` the importance
+  weights are computed but not used, so they show how off-policy its data really was. From
+  step 11 to step 28, the stretch in which it went from 0.4 to 0.995, the spread averaged
+  0.056, against 0.031 for `iw` over the same steps and about 0.02 in the synchronous runs,
+  and peaked at 0.127 at step 22. Single tokens went as
+  low as 0.013: a token the sampling policy chose that the current policy now found about 75
+  times less likely. `noiw` still trained on those tokens at full weight. `iw` saw milder
+  tails (largest 3.75, smallest 0.315) and its PPO loss clipped them.
+- **Why the missing correction did not hurt here.** The mean ratio stayed at 1.000 in every
+  run. Most tokens were almost on-policy, and the badly off-policy ones were a small tail. On
+  a task this easy, with a small learning rate and a LoRA adapter, a small biased tail does
+  not change where training ends up. The correction matters when that tail is a large part
+  of the batch: higher staleness, larger learning rates, or a policy changing fast for many
+  steps in a row. TextCraft's long episodes are a better place to look for that.
+- **Why `noiw` skipped more steps.** It learned fastest, so it spent more of the run at
+  99-100% success, where every group is all-success and carries no signal. Skipped steps
+  publish no new version, which is why it ended at version 39 against `iw`'s 49, and why its
+  learner-wait total is high: in a skipped step the learner only waits.
+
+### For the report
+
+Part 4.3 asks for the standard diagnostic plots of both runs. The importance-weight spread
+over steps, `noiw` against `iw`, is the plot that shows the difference; the success curves
+alone do not.
+
+### A mistake worth remembering
+
+The two apps were stopped a few minutes after the probes, while the full `iw` run had just
+started on its server. That run died in its cold start, before its step-0 evaluation, and
+left an empty log and a manifest that blocked a fresh start under the same run name. The fix
+was to delete the two files, redeploy and start again; the cost was one extra cold start
+per server. Rule added to `Plan.md`: stop an app only after its terminal has printed the
+`[checkpoints] wrote ...` line.
+
+### Next
+
+Day 4 in `docs/Runbook.md`: the TextCraft probe, then the 6-8 hour `p5` run. Install `tmux`
+in the Codespace first.

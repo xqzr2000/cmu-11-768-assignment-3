@@ -247,6 +247,58 @@ lesson is the same: on a new cloud account, find the quota page before planning 
 **Blocked on Modal:** the TextCraft run (about $100-130) cannot start until the limit is
 raised.
 
+### Nov 12 - Limit raised, Day 3 finished
+
+**What we did**
+
+- Modal answered the request: the workspace can now set a spend limit of up to $1,000.
+  Russell set it to $300, a margin above the $250 budget rather than more budget.
+- Deployed two async servers (`scottyrl-p43iw`, `scottyrl-p43noiw`), ran a 10-step probe on
+  each in parallel, then the two 50-step `p43` runs on the same warm servers.
+- Stopped both apps too early, a few minutes after the probes, which killed the `iw` full
+  run during its cold start. Removed its empty log, redeployed, and ran both again.
+- Stopped both apps once each terminal printed its `[checkpoints] wrote ...` line, and
+  pushed the logs.
+
+**What Modal did that surprised us**
+
+- `modal app stop` gives a running client no warning. The server simply goes away, and the
+  trainer in the Codespace fails on its next request. Nothing on Modal's side knows that a
+  run was in progress.
+- Redeploying after a stop gave a new app ID but the same URL. The URL follows the app
+  name, so the `TINKER_BASE_URL` already exported in each terminal still worked.
+- The stopped apps stay in `modal app list` with their stop times, next to the new ones. The
+  state volumes survived the stop, so the probe checkpoints were still there.
+- Both servers came up within the same few minutes again. Two 2xH100 containers at once
+  were no problem.
+
+**AWS comparison**
+
+On EC2 the closest thing is stopping an instance mid-job, and the process dies the same way.
+The difference is the warning: a spot reclaim gives two minutes, which is what Mario_Ops'
+SIGTERM handler used to write a last checkpoint to S3. Here the stop is immediate and the
+GPUs are not where the trainer runs, so the only protection is the resumable checkpoint
+every 10 optimizer steps. A run killed before step 10 has nothing to resume from and starts
+over.
+
+The spend limit is now something the owner sets within Modal's ceiling, much like an AWS
+budget alarm, except that Modal enforces it by stopping work instead of sending an email.
+
+**Qwen hosting or training note**
+
+- The trainer's own cold start showed up again: the first optimizer step took about 115
+  seconds on each new server, later ones 5-60 seconds.
+- The pinned SkyRL server handled the `cross_entropy` loss without any change. Its training
+  records simply carry fewer fields than PPO's (no `pg_loss`, `entropy_loss` or the
+  server-side log-probability differences), because that loss returns fewer metrics.
+- A run name is per-server state: the probe and the full run used different names on the
+  same server and did not interfere.
+
+**Spend so far:** roughly $50-55 (estimate: $35-37 through Nov 11, plus two 2xH100 servers
+for about 19 minutes and then about 37 minutes each today, about $16; the early stop cost
+about $2 of that in extra cold starts). The exact figure is on the Modal dashboard. Day 3 as
+a whole came to about $23 against the planned $30.
+
 ## Entry template
 
 ```
