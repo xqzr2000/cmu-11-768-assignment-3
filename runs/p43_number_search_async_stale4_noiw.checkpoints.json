@@ -1,0 +1,216 @@
+{
+  "run_name": "p43_number_search_async_stale4_noiw",
+  "base_model": "Qwen/Qwen3.5-4B",
+  "lora_rank": 32,
+  "completed_steps": 39,
+  "resumes": 0,
+  "snapshots": [
+    {
+      "name": "baseline",
+      "path": "tinker://model_0307413d/baseline",
+      "completed_steps": 0
+    },
+    {
+      "name": "v0",
+      "path": "tinker://model_0307413d/v0",
+      "completed_steps": 0
+    },
+    {
+      "name": "v1",
+      "path": "tinker://model_0307413d/v1",
+      "completed_steps": 1
+    },
+    {
+      "name": "v2",
+      "path": "tinker://model_0307413d/v2",
+      "completed_steps": 2
+    },
+    {
+      "name": "v3",
+      "path": "tinker://model_0307413d/v3",
+      "completed_steps": 3
+    },
+    {
+      "name": "v4",
+      "path": "tinker://model_0307413d/v4",
+      "completed_steps": 4
+    },
+    {
+      "name": "v5",
+      "path": "tinker://model_0307413d/v5",
+      "completed_steps": 5
+    },
+    {
+      "name": "v6",
+      "path": "tinker://model_0307413d/v6",
+      "completed_steps": 6
+    },
+    {
+      "name": "v7",
+      "path": "tinker://model_0307413d/v7",
+      "completed_steps": 7
+    },
+    {
+      "name": "v8",
+      "path": "tinker://model_0307413d/v8",
+      "completed_steps": 8
+    },
+    {
+      "name": "v9",
+      "path": "tinker://model_0307413d/v9",
+      "completed_steps": 9
+    },
+    {
+      "name": "v10",
+      "path": "tinker://model_0307413d/v10",
+      "completed_steps": 10
+    },
+    {
+      "name": "v11",
+      "path": "tinker://model_0307413d/v11",
+      "completed_steps": 11
+    },
+    {
+      "name": "v12",
+      "path": "tinker://model_0307413d/v12",
+      "completed_steps": 12
+    },
+    {
+      "name": "v13",
+      "path": "tinker://model_0307413d/v13",
+      "completed_steps": 13
+    },
+    {
+      "name": "v14",
+      "path": "tinker://model_0307413d/v14",
+      "completed_steps": 14
+    },
+    {
+      "name": "v15",
+      "path": "tinker://model_0307413d/v15",
+      "completed_steps": 15
+    },
+    {
+      "name": "v16",
+      "path": "tinker://model_0307413d/v16",
+      "completed_steps": 16
+    },
+    {
+      "name": "v17",
+      "path": "tinker://model_0307413d/v17",
+      "completed_steps": 17
+    },
+    {
+      "name": "v18",
+      "path": "tinker://model_0307413d/v18",
+      "completed_steps": 18
+    },
+    {
+      "name": "v19",
+      "path": "tinker://model_0307413d/v19",
+      "completed_steps": 19
+    },
+    {
+      "name": "v20",
+      "path": "tinker://model_0307413d/v20",
+      "completed_steps": 20
+    },
+    {
+      "name": "v21",
+      "path": "tinker://model_0307413d/v21",
+      "completed_steps": 21
+    },
+    {
+      "name": "v22",
+      "path": "tinker://model_0307413d/v22",
+      "completed_steps": 22
+    },
+    {
+      "name": "v23",
+      "path": "tinker://model_0307413d/v23",
+      "completed_steps": 23
+    },
+    {
+      "name": "v24",
+      "path": "tinker://model_0307413d/v24",
+      "completed_steps": 24
+    },
+    {
+      "name": "v25",
+      "path": "tinker://model_0307413d/v25",
+      "completed_steps": 25
+    },
+    {
+      "name": "v26",
+      "path": "tinker://model_0307413d/v26",
+      "completed_steps": 26
+    },
+    {
+      "name": "v27",
+      "path": "tinker://model_0307413d/v27",
+      "completed_steps": 27
+    },
+    {
+      "name": "v28",
+      "path": "tinker://model_0307413d/v28",
+      "completed_steps": 28
+    },
+    {
+      "name": "v29",
+      "path": "tinker://model_0307413d/v29",
+      "completed_steps": 29
+    },
+    {
+      "name": "v30",
+      "path": "tinker://model_0307413d/v30",
+      "completed_steps": 30
+    },
+    {
+      "name": "v31",
+      "path": "tinker://model_0307413d/v31",
+      "completed_steps": 31
+    },
+    {
+      "name": "v32",
+      "path": "tinker://model_0307413d/v32",
+      "completed_steps": 32
+    },
+    {
+      "name": "v33",
+      "path": "tinker://model_0307413d/v33",
+      "completed_steps": 33
+    },
+    {
+      "name": "v34",
+      "path": "tinker://model_0307413d/v34",
+      "completed_steps": 34
+    },
+    {
+      "name": "v35",
+      "path": "tinker://model_0307413d/v35",
+      "completed_steps": 35
+    },
+    {
+      "name": "v36",
+      "path": "tinker://model_0307413d/v36",
+      "completed_steps": 36
+    },
+    {
+      "name": "v37",
+      "path": "tinker://model_0307413d/v37",
+      "completed_steps": 37
+    },
+    {
+      "name": "v38",
+      "path": "tinker://model_0307413d/v38",
+      "completed_steps": 38
+    },
+    {
+      "name": "v39",
+      "path": "tinker://model_0307413d/v39",
+      "completed_steps": 39
+    }
+  ],
+  "final_sampler_path": "tinker://model_0307413d/v39",
+  "resumable_state_path": "tinker://model_0307413d/weights/resume_000030"
+}
