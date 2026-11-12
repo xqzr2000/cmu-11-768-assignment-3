@@ -205,6 +205,48 @@ between runs (separate checkpoints, separate URLs) came for free.
 about 50 minutes each including start-up and the idle window; the exact figure is on the
 Modal dashboard).
 
+### Nov 11 - A spend limit we did not know about
+
+**What we did**
+
+- Checked the Usage & Billing page before the session and found a spend limit of $20.
+- Ran the async probe and the full `p3` run on one 2xH100 server, about 45 minutes of server
+  time in total. Postponed the two `p43` runs.
+- Emailed Modal asking for the limit to be raised to $300.
+
+**What Modal did that surprised us**
+
+- A new Starter workspace with a card on file can spend only $20 a month beyond its $30
+  credit. The page shows the number, but nothing in the sign-up flow pointed at it, and the
+  owner could not raise it alone; it took a request to Modal.
+- Modal's docs say that when the spend limit is reached it stops workloads that would incur
+  further charges. For us that would mean a training server killed in the middle of a run.
+  We found the limit by looking, not by hitting it.
+- With $1.90 of credit left, tonight's real ceiling was $21.90. The plan had been three
+  parallel runs at about $25 an hour between them, which would not have finished.
+
+**AWS comparison**
+
+AWS has the mirror-image habit: new accounts get low service quotas on GPU instance types
+(a vCPU count per instance family) and you request an increase before you can launch at
+all. That blocks you at the start. Modal's dollar limit lets you start and stops you later,
+which is friendlier for small experiments and more dangerous for a long run. Either way the
+lesson is the same: on a new cloud account, find the quota page before planning the big job.
+
+**Qwen hosting or training note**
+
+- The probe's first optimizer step took 112 seconds and the full run's first took under 6,
+  on the same server minutes apart. The trainer side also has a cold start (loading the
+  model into Megatron and compiling), separate from the sampler's.
+- Running the probe and the full run back to back on one deployed app worked: a new
+  `run_name` creates a new training run on the same warm server, with no redeploy.
+
+**Spend so far:** roughly $35-37 (estimate: $28.10 of credit used through Day 2, plus about
+45 minutes of one 2xH100 server tonight; the exact figure is on the Modal dashboard).
+
+**Blocked on Modal:** the TextCraft run (about $100-130) cannot start until the limit is
+raised.
+
 ## Entry template
 
 ```
