@@ -130,7 +130,8 @@ stopped once the full run is launched. Logs go to the `scottyrl-trainer-runs` vo
 
 The runner retries a crashed trainer twice (resuming from the last 10-step checkpoint, or
 starting over if it died before step 10) and stops the run at 12 hours with SIGINT, so the
-checkpoint manifest is still written.
+checkpoint manifest is still written. A trainer that prints nothing for 60 minutes is treated
+as hung and handled like a crash, so a hang cannot keep the GPU server billing for 12 hours.
 
 **Tonight, in the Codespace**
 

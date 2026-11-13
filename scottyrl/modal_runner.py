@@ -16,7 +16,9 @@ The three decisions this module makes:
   attempt stopped by the time cap is not retried.
 - When to stop. The trainer gets SIGINT when the time cap is reached, so its
   `finally` block still writes the checkpoint manifest; if it has not exited
-  after `grace_s` seconds it is killed.
+  after `grace_s` seconds it is killed. The same happens when it prints nothing
+  for `stall_s` seconds, but that counts as a crash and is retried: a hung
+  trainer would otherwise keep the GPU server billing until the time cap.
 """
 
 from __future__ import annotations
@@ -136,11 +138,18 @@ def run_subprocess(
     console_path: Path,
     time_left_s: float,
     grace_s: float = 300.0,
+    stall_s: float | None = None,
+    poll_s: float = 5.0,
 ) -> tuple[int, bool]:
     """Run `cmd`, copying its output to stdout and to `console_path`.
 
-    At `time_left_s` the process gets SIGINT; after a further `grace_s` it is
-    killed. Returns (exit_code, stopped_by_time_cap).
+    Two ways it is stopped early, both with SIGINT and then, after `grace_s`,
+    a kill:
+
+    - Time cap: at `time_left_s`. Returns (exit_code, True); not retried.
+    - Stall: no output for `stall_s` seconds (None disables the check). A hung
+      trainer keeps both containers billing, so a silent one is treated as a
+      crash: returns (nonzero exit_code, False), which the caller retries.
     """
     console_path = Path(console_path)
     console_path.parent.mkdir(parents=True, exist_ok=True)
@@ -148,30 +157,54 @@ def run_subprocess(
         cmd, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         text=True, bufsize=1,
     )
+    last_output = [time.monotonic()]
+    console_lock = threading.Lock()
+
+    def emit(line: str) -> None:
+        with console_lock:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            with console_path.open("a") as console:
+                console.write(line)
 
     def pump() -> None:
-        with console_path.open("a") as console:
-            for line in proc.stdout:
-                sys.stdout.write(line)
-                sys.stdout.flush()
-                console.write(line)
-                console.flush()
+        for line in proc.stdout:
+            last_output[0] = time.monotonic()
+            emit(line)
 
     reader = threading.Thread(target=pump, daemon=True)
     reader.start()
-    timed_out = False
-    try:
-        proc.wait(timeout=max(time_left_s, 0))
-    except subprocess.TimeoutExpired:
-        timed_out = True
+
+    def interrupt() -> None:
         proc.send_signal(signal.SIGINT)
         try:
             proc.wait(timeout=grace_s)
         except subprocess.TimeoutExpired:
             proc.kill()
             proc.wait()
+
+    deadline = time.monotonic() + max(time_left_s, 0)
+    timed_out = stalled = False
+    while proc.poll() is None:
+        now = time.monotonic()
+        if now >= deadline:
+            timed_out = True
+            interrupt()
+            break
+        if stall_s is not None and now - last_output[0] >= stall_s:
+            stalled = True
+            emit(f"[runner] no output for {stall_s:.0f} s; treating the trainer as hung\n")
+            interrupt()
+            break
+        try:
+            proc.wait(timeout=min(poll_s, max(deadline - now, 0.01)))
+        except subprocess.TimeoutExpired:
+            pass
     reader.join(timeout=10)
-    return proc.returncode, timed_out
+    code = proc.returncode
+    if stalled and code == 0:
+        code = 124  # a hang that ended cleanly after SIGINT is still a failure
+    return code, timed_out
 
 
 def child_env(**extra: str) -> dict[str, str]:

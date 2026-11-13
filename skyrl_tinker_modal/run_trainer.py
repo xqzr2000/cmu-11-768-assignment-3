@@ -44,6 +44,9 @@ VOL = "/vol"  # working directory of the trainer, so runs/ lands on the volume
 TIME_CAP_S = 12 * 60 * 60
 # Time the trainer gets after SIGINT to write its checkpoint manifest.
 GRACE_S = 5 * 60
+# No output for this long means the trainer is hung: interrupt and retry. The
+# longest normal silence is the step-0 evaluation, about 15-30 minutes on TextCraft.
+STALL_S = 60 * 60
 
 # The client side needs no GPU and no PyTorch: the same locked dependencies as
 # the Codespace, then the repo's code, configs and data on top.
@@ -116,7 +119,7 @@ def train(
         code = run_with_retries(
             lambda cmd, time_left: run_subprocess(
                 cmd, cwd=Path(VOL), env=env, console_path=console,
-                time_left_s=time_left, grace_s=GRACE_S,
+                time_left_s=time_left, grace_s=GRACE_S, stall_s=STALL_S,
             ),
             runs_dir=runs_dir,
             run_name=run_name,
