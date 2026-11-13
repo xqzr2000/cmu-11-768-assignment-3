@@ -116,7 +116,9 @@ def parse_tool_call(completion_text: str) -> ToolCall | None:
         return ToolCall(name=name, args=(), raw=m.group(0))
     try:
         args = ast.literal_eval(f"({arg_src},)")
-    except (ValueError, SyntaxError):
+    except (ValueError, SyntaxError, TypeError, MemoryError, RecursionError):
+        # TypeError: a literal that cannot be built, e.g. a dict inside a set.
+        # Before Nov 13 it escaped and abandoned the episode as a failure.
         return None
     return ToolCall(name=name, args=args, raw=m.group(0))
 
