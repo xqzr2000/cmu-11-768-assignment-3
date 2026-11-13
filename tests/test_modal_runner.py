@@ -171,3 +171,47 @@ def test_run_subprocess_interrupts_at_time_cap(tmp_path):
     )
     assert timed_out
     assert (tmp_path / "cleaned_up").read_text() == "yes"
+
+
+# --- run_subprocess: stall watchdog -------------------------------------------------
+
+
+def test_run_subprocess_interrupts_a_silent_process(tmp_path):
+    # A hang is the costly failure: both containers stay up and bill until the
+    # time cap. No output for stall_s counts as a crash (retried), not as the
+    # time cap (not retried).
+    script = (
+        "import time\n"
+        "print('started', flush=True)\n"
+        "time.sleep(30)\n"
+    )
+    console = tmp_path / "console.log"
+    code, timed_out = run_subprocess(
+        [sys.executable, "-c", script], cwd=tmp_path, env=None,
+        console_path=console, time_left_s=60, grace_s=5, stall_s=1.0, poll_s=0.1,
+    )
+    assert not timed_out
+    assert code != 0
+    assert "no output for" in console.read_text()
+
+
+def test_steady_output_is_not_a_stall(tmp_path):
+    script = (
+        "import time\n"
+        "for _ in range(6):\n"
+        "    print('step', flush=True)\n"
+        "    time.sleep(0.3)\n"
+    )
+    code, timed_out = run_subprocess(
+        [sys.executable, "-c", script], cwd=tmp_path, env=None,
+        console_path=tmp_path / "console.log", time_left_s=60, grace_s=5,
+        stall_s=1.0, poll_s=0.1,
+    )
+    assert (code, timed_out) == (0, False)
+
+
+def test_stall_is_retried(tmp_path):
+    # run_with_retries sees a stall as an ordinary failure: (nonzero, False).
+    runner = FakeRunner(tmp_path, [(124, False, True), (0, False, True)])
+    assert retry(tmp_path, runner) == 0
+    assert runner.commands == [["train"], ["train", "RESUME"]]
