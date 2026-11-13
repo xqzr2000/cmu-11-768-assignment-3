@@ -189,23 +189,20 @@ If the runner gave up (no retries left, or the 12-hour cap), continue it with
 Emergency stop at any time: `uv run modal app stop scottyrl-trainer -y` (kills the trainer;
 redeploy `run_trainer.py` before launching again), then `uv run modal app stop scottyrl-textcraft -y`.
 
-## Day 5 - Evaluation (~$15-20, reduced)
+## Day 5 - Evaluation, reduced (~$12-16)
 
-The commands below run the full evaluation: 2 models x (213 + 136 tasks) x 4 attempts, about
-2,800 TextCraft episodes, roughly 5 hours on two H100s. That is more than the remaining budget.
-Decide the scope first; `evaluate_checkpoint.py --num-tasks 50` limits each set to its first 50
-tasks (800 episodes in all).
-
-
-Find the final snapshot, download it from the Modal volume, serve it, evaluate.
+The step-41 model and the base model on the first 50 validation tasks, 4 attempts each: the
+same tasks and settings as the training run's evaluations, so the results extend its curve
+(step 0: 0.115, step 30: 0.500). See "Adapted plan" in `Plan.md`.
 
 ```bash
-grep final_sampler_path runs/p5_textcraft_grpo.checkpoints.json   # tinker://<model-id>/<snapshot>
+git pull
+grep final_sampler_path runs/p5_textcraft_grpo.checkpoints.json   # tinker://model_367b3579/v41_r2
 
-mkdir -p runs/p5_adapter
+uv run modal volume ls scottyrl-textcraft-state checkpoints/model_367b3579/sampler_weights
 uv run modal volume get scottyrl-textcraft-state \
-    checkpoints/<model-id>/sampler_weights/<snapshot>.tar.gz runs/p5_adapter.tar.gz
-tar -xf runs/p5_adapter.tar.gz -C runs/p5_adapter
+    checkpoints/model_367b3579/sampler_weights/v41_r2.tar.gz runs/p5_adapter.tar.gz
+mkdir -p runs/p5_adapter && tar -xf runs/p5_adapter.tar.gz -C runs/p5_adapter
 
 cd skyrl_tinker_modal
 LORA_ADAPTER=../runs/p5_adapter uv run modal deploy serve_evaluation.py
@@ -214,15 +211,23 @@ export EVAL_SERVER=<printed url>
 
 for model in a3 Qwen/Qwen3.5-4B; do
   uv run python scripts/evaluate_checkpoint.py --config configs/p5_textcraft_grpo.yaml \
-      --server "$EVAL_SERVER" --model "$model" --k 4 | tee -a runs/p5_eval.txt
-  uv run python scripts/evaluate_checkpoint.py --config configs/p5_textcraft_grpo.yaml \
-      --server "$EVAL_SERVER" --model "$model" --k 4 --tasks data/textcraft_val_hard.jsonl | tee -a runs/p5_eval.txt
+      --server "$EVAL_SERVER" --model "$model" --k 4 --num-tasks 50 | tee -a runs/p5_eval.txt
 done
 
-uv run modal app stop scottyrl-evaluation
+uv run modal app stop scottyrl-evaluation -y
+uv run modal app list
+
+# trajectories for the analysis (not committed; gitignored)
+uv run modal volume get scottyrl-trainer-runs runs/p5_textcraft_grpo_trajectories runs/p5_textcraft_grpo_trajectories
+
 git add -f runs/p5_eval.txt && git commit -m "Add Part 5 evaluation results" && git push
 ```
 
-## Day 6 - Report
+If the `volume ls` listing shows the snapshot under another name or extension, use that.
+Each evaluation takes roughly 20-40 minutes once the server is up; leave the terminal open.
 
-Tell Claude the logs are pushed. Claude builds the plots and `docs/Report.md` from them.
+## Day 6-7 - Analysis and report
+
+Tell Claude the evaluation results are pushed and the trajectories are in the Codespace.
+Claude runs the analyses listed under "Adapted plan" in `Plan.md`, then builds the plots and
+`docs/Report.md`: RL findings and the Modal experience side by side.

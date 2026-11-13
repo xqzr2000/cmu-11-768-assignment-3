@@ -42,9 +42,33 @@ time. Commands are in [Runbook.md](Runbook.md).
 | 2 (done Nov 11) | `p2a`, `p2b`, `p41` in parallel on three sync servers | ~$30 |
 | 3 (done Nov 12) | Async probe and `p3` on Nov 11 (held to one run by Modal's $20 spend limit); limit raised, both `p43` runs probed and run on Nov 12 | ~$30 |
 | 4 (done Nov 13) | Trainer app deployed, TextCraft probe, `p5` run on Modal overnight. Stopped at step 41 of 50 after the GPU server started leaving requests stuck; about 10.5 hours of 4xH100 | ~$195 |
-| 5 | Download the adapter, run a reduced evaluation (scope to decide: the full one is about 2,800 episodes, ~5 hours on two H100s), stop every app, push the logs | ~$15-20 |
-| 6 | Read the report Claude builds from the logs | $0 |
-| 7 | Spare day for a rerun | - |
+| 5 | Evaluate the step-41 model and the base model on the same 50 validation tasks the training run used (4 attempts each); download the TextCraft trajectories | ~$12-16 |
+| 6 | Analysis from the logs and trajectories (no GPU), see "Adapted plan" below | $0 |
+| 7 | Read the report Claude builds: RL findings and the cloud experience side by side | $0 |
+
+### Adapted plan (decided Nov 13)
+
+After Day 4 the goal changed from finishing the assignment as written to learning from what
+we have. The `p5` run stays at step 41: finishing the last 9 steps would cost about $40-45 on a
+fresh server and mostly extend a curve that is already clear.
+
+- **Evaluation, reduced.** The course evaluates both models on the full validation set and a
+  hard set, about 2,800 TextCraft episodes. We evaluate the step-41 model and the base model
+  on the first 50 validation tasks, 4 attempts each: the same tasks and settings as the
+  training run's own evaluations at steps 0-30, so the five points form one curve. The base
+  model also checks that the evaluation server (vLLM serving the adapter) agrees with the
+  training server's step-0 number. No hard set.
+- **Analysis, no GPU.** From the run logs and the saved trajectories (every 5th TextCraft
+  step, on the `scottyrl-trainer-runs` volume; every step for Number Search):
+  1. How TextCraft episodes fail: out of turns, malformed calls, wrong recipes, and how the
+     mix changes over training.
+  2. Thinking length against success, early and late in training.
+  3. Groups with no signal: how many are all-fail and how many all-success, per stage.
+  4. Number Search (Parts 2-4) against TextCraft (Part 5): two shapes of learning.
+  5. Cost per point of improvement, and where the GPU time went.
+- **Report.** RL findings and the Modal experience side by side, with the AWS comparison.
+- **Budget.** About $241 spent; the reduced evaluation brings it to about $255. Going a little
+  over the $250 budget is accepted; the $300 Modal limit stays.
 
 Running three Number Search servers at once uses 6 H100s, inside the Starter plan's limit of 10.
 
