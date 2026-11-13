@@ -35,6 +35,11 @@ def test_parse_tool_call():
     assert parse_tool_call("<tool>finish()</tool>").args == ()
     assert parse_tool_call("no tool here") is None
     assert parse_tool_call("<tool>guess(import os)</tool>") is None  # not a literal
+    # Literals that cannot be built (a dict inside a set, a list as a dict key)
+    # raise TypeError in literal_eval. The model wrote these during the Part 5
+    # run; they must count as malformed calls, not abandon the episode.
+    assert parse_tool_call('<tool>craft({{"m0_i1": 2}}, 1)</tool>') is None
+    assert parse_tool_call("<tool>get_info({[1]: 2})</tool>") is None
 
 
 # ---------- number search ----------
