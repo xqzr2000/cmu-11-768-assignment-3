@@ -6,6 +6,8 @@ __pycache__/
 runs/*_trajectories/
 runs/p5_adapter*
 runs/probe_*
+# Trainer console output from Modal: tracebacks can carry the GPU server's URL.
+runs/*.console.log
 wandb/
 .venv/
 .env
