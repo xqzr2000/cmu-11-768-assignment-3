@@ -299,6 +299,58 @@ for about 19 minutes and then about 37 minutes each today, about $16; the early 
 about $2 of that in extra cold starts). The exact figure is on the Modal dashboard. Day 3 as
 a whole came to about $23 against the planned $30.
 
+### Nov 12-13 - The whole job on Modal, overnight
+
+**What we did**
+
+- Wrote `skyrl_tinker_modal/run_trainer.py`: a CPU-only Modal app that runs the unchanged
+  `train_async.py` next to the GPU server, writes `runs/` to a Modal volume, retries a crashed
+  trainer twice, stops at 12 hours, and (added the same night) treats 60 minutes of silence as
+  a hang. `scripts/launch_on_modal.py` starts it with `spawn()` and returns.
+- Ran the 2-step TextCraft probe through it, then launched the full run around 00:20 and
+  stopped the Codespace. In the morning the run was at step 39 with nothing to do on our side.
+- The GPU server then started leaving requests stuck. One crash, one hang caught by the
+  watchdog, and a last retry; we stopped it at step 41 around 11:00, downloaded the logs with
+  `modal volume get`, and committed them.
+
+**What Modal did that surprised us**
+
+- `spawn()` on a deployed function is the "start and walk away" button. The call belongs to
+  the deployed app, not to the terminal that made it, so closing the Codespace changed
+  nothing. `modal app logs -f` re-attaches to the output from anywhere.
+- The dashboard's small bar charts count new inputs (calls or HTTP requests), not CPU load.
+  A long-running trainer shows a single bar at launch; the GPU server shows a bar in every
+  slot because every request counts.
+- `modal app stop` let the trainer shut down cleanly enough to write its checkpoint manifest,
+  so all three attempts' snapshots were recorded.
+- **Non-preemptible costs three times as much.** The trainer container (4 cores, 16 GiB)
+  cost $10.90 for the night, against about $3.60 at the normal rate. It spent most of its
+  time waiting on the GPU server; 2 cores, 8 GiB would have been enough.
+- Volume storage is free up to 1 TiB, and stopped apps cost nothing, so nothing keeps
+  billing after a run. The dashboard's per-app sizes (19.7 GiB for the trainer) are network
+  traffic, not storage.
+
+**AWS comparison**
+
+This is the setup Mario_Ops had on AWS: the whole job in the cloud, the laptop only for
+launching and reading results. On AWS it took an EC2 instance, a launch script and a SIGTERM
+handler; here it took one decorated function and a `spawn()` call, with no machine to manage.
+What Modal did not give us is any visibility into why the server's requests got stuck. On an
+instance we could have logged in and looked; here we only had the server's request log.
+
+**Qwen hosting or training note**
+
+- One 4xH100 container served three vLLM engines and the trainer for over 11 hours. Long
+  sessions are where it got fragile: rare stuck requests from early on, a blocking one after
+  about 10 hours. The retries reused the same container; a fresh one might have done better.
+- TextCraft with thinking is generation-bound: episodes of 12-16k tokens took about 15
+  minutes each, and the learner sat idle 68% of the time.
+
+**Spend so far:** about $241 by the dashboard's per-app breakdown, of which the TextCraft
+server was $186.58 and the trainer app $10.90. That is the $250 budget; the $300 limit leaves
+about $55 for Day 5. (The usage counter showed $172 at 08:30, with about $40 of the run still
+to go; it appears to count after the $30 monthly credit.)
+
 ## Entry template
 
 ```

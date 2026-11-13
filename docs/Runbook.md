@@ -122,7 +122,14 @@ TINKER_BASE_URL=<p43noiw url> uv run python scripts/train_async.py --config conf
 
 Stop the three apps and push the logs as on Day 2.
 
-## Day 4 - TextCraft on Modal, detached (~$100-130)
+## Day 4 - TextCraft on Modal, detached (~$100-130) - DONE
+
+Ran Nov 12-13, stopped at step 41 of 50; see `docs/Learning-Progress.md`. Lessons for any rerun:
+`run_trainer.py` asks for 4 cores, 16 GiB and `nonpreemptible=True`, which Modal bills at three
+times the base rate ($10.90 for the night); the trainer barely uses its CPU, so 2 cores and 8
+GiB would do. If requests start getting stuck (`No progress made in 7200s`), stop both apps
+and redeploy the GPU server before resuming, instead of retrying on the same server.
+
 
 Only after Day 3 looked healthy. The trainer runs on Modal too, in a CPU-only container
 (`skyrl_tinker_modal/run_trainer.py`) next to the 4xH100 server, so the Codespace can be
@@ -182,7 +189,13 @@ If the runner gave up (no retries left, or the 12-hour cap), continue it with
 Emergency stop at any time: `uv run modal app stop scottyrl-trainer -y` (kills the trainer;
 redeploy `run_trainer.py` before launching again), then `uv run modal app stop scottyrl-textcraft -y`.
 
-## Day 5 - Evaluation (~$10-20)
+## Day 5 - Evaluation (~$15-20, reduced)
+
+The commands below run the full evaluation: 2 models x (213 + 136 tasks) x 4 attempts, about
+2,800 TextCraft episodes, roughly 5 hours on two H100s. That is more than the remaining budget.
+Decide the scope first; `evaluate_checkpoint.py --num-tasks 50` limits each set to its first 50
+tasks (800 episodes in all).
+
 
 Find the final snapshot, download it from the Modal volume, serve it, evaluate.
 
