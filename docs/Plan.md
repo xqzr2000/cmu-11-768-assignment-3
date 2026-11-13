@@ -41,8 +41,8 @@ time. Commands are in [Runbook.md](Runbook.md).
 | 1 (done Nov 10) | Merge the pull requests, open a Codespace, run the tests, sign up for Modal, add secrets, build the image, 10-step probe | ~$5 |
 | 2 (done Nov 11) | `p2a`, `p2b`, `p41` in parallel on three sync servers | ~$30 |
 | 3 (done Nov 12) | Async probe and `p3` on Nov 11 (held to one run by Modal's $20 spend limit); limit raised, both `p43` runs probed and run on Nov 12 | ~$30 |
-| 4 | Deploy the trainer app, TextCraft probe, then launch `p5` on Modal and stop the Codespace (6-8 hours) | ~$100-130 |
-| 5 | Download the adapter, run the four evaluations, stop every app, push the logs | ~$10-20 |
+| 4 (done Nov 13) | Trainer app deployed, TextCraft probe, `p5` run on Modal overnight. Stopped at step 41 of 50 after the GPU server started leaving requests stuck; about 10.5 hours of 4xH100 | ~$195 |
+| 5 | Download the adapter, run a reduced evaluation (scope to decide: the full one is about 2,800 episodes, ~5 hours on two H100s), stop every app, push the logs | ~$15-20 |
 | 6 | Read the report Claude builds from the logs | $0 |
 | 7 | Spare day for a rerun | - |
 

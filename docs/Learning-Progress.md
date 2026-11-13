@@ -502,3 +502,91 @@ per server. Rule added to `Plan.md`: stop an app only after its terminal has pri
 
 Day 4 in `docs/Runbook.md`: the TextCraft probe, then the 6-8 hour `p5` run. Install `tmux`
 in the Codespace first.
+
+## Day 4 (Nov 12-13) - TextCraft, `p5_textcraft_grpo`
+
+Part 5: Qwen3.5-4B with thinking on, trained with asynchronous GRPO on TextCraft (craft a
+target item from a recipe book, with a turn limit per task, 75 on the validation set). 16 tasks x 8 attempts per step, 50 steps
+planned. The trainer ran on Modal next to the 4xH100 server, so the run did not need the
+Codespace (see `docs/cloud-walker-Modal.md`).
+
+**It stopped at step 41 of 50.** Requests on the GPU server started getting stuck partway
+through the night; the trainer crashed once and hung once (details below). With the 12-hour
+cap an hour away and the server unreliable, we stopped it. The model Day 5 evaluates is the
+step-41 snapshot, `tinker://model_367b3579/v41_r2`.
+
+### Results
+
+Held-out evaluation, 50 validation tasks x 4 attempts:
+
+| Step | Success | pass@4 | Average turns |
+|---|---|---|---|
+| 0 (base model) | 0.115 | 0.26 | 64.5 |
+| 10 | 0.195 | 0.44 | 60.5 |
+| 20 | 0.335 | 0.62 | 56.4 |
+| 30 | **0.500** | **0.70** | 53.0 |
+
+The step-40 evaluation was lost in the first crash. Training rollouts, averaged per stretch:
+
+| Steps | Success | pass@8 | Groups with no signal | Step time |
+|---|---|---|---|---|
+| 1-10 | 0.16 | 0.46 | 55% | 10.7 min |
+| 11-20 | 0.27 | 0.62 | 40% | 12.2 min |
+| 21-30 | 0.37 | 0.70 | 35% | 12.7 min |
+| 31-41 | 0.53 | 0.71 | 47% | 13.3 min |
+
+### What the numbers say
+
+- **TextCraft learned steadily, without a jump.** Number Search went from 0.4 to 0.99 within
+  ten steps once it found the trick. TextCraft climbed by about 0.15 per ten steps and was
+  still rising when it stopped (training success 0.58 at step 40, 0.91 at step 41). More
+  steps would very likely have helped.
+- **Episodes got shorter.** Average turns per evaluation episode fell from 64.5 to 53. The
+  base model mostly runs out of turns before finishing; the trained one finishes more often
+  and sooner.
+- **Most groups at the start carried no signal.** 55% of the early groups were all-fail:
+  eight attempts at a hard task, none succeeding, so GRPO has nothing to compare. That
+  fell to 35% by steps 21-30, as the model solved more tasks some of the time. Late in the
+  run it rose again, now partly from all-success groups.
+- **The run was limited by episode generation, not by learning.** An episode took about 15
+  minutes on average (12-16k tokens with thinking). The learner waited for data 68% of the
+  time; an update took about 3 minutes. The probe's second step (3.7 minutes, update-bound)
+  was a poor guide to the full run: 50 steps would have needed about 10.5 hours, not 6-8.
+- **Importance weights stayed at 1.000 throughout**, as in Part 4. Staleness was not a
+  problem here; time was.
+
+### What went wrong
+
+1. **Stuck requests on the GPU server.** From about step 10, a few rollout requests never
+   completed. The Tinker client gives up after 7,200 seconds (`No progress made in 7200s.
+   Requests appear to be stuck.`), so those episodes were abandoned and the run carried on.
+   After step 42 a request from the learner itself got stuck, and the trainer crashed.
+   The runner resumed from the step-40 checkpoint; on the same server, the learner hung
+   again after step 42 and the 60-minute watchdog stopped it; the last retry was at step 41
+   when we stopped the run. We do not know the server-side cause. The pattern (rare at
+   first, then blocking) points at the server degrading over a long session; a fresh server
+   for the retry might have done better.
+2. **A parser bug** (fixed in PR #10). When the model wrote an argument Python cannot build,
+   such as a dict inside a set, `parse_tool_call` raised a `TypeError` instead of treating
+   it as a malformed call, and the episode was abandoned. About ten episodes were lost. It
+   slightly understates training success; it would have hit the evaluation too.
+
+Together these abandoned 9 training episodes (in the steps kept in the log) and 2
+evaluation episodes out of several thousand, so the results above stand.
+
+### For the report
+
+- The success curve against Part 4's, to show the difference between an easy task with a
+  sudden jump and a hard one with steady progress.
+- Turns per episode falling, as the efficiency gain.
+- The step time breakdown (learner waiting 68%), to explain why long-horizon RL with
+  thinking is expensive.
+- That the run ended at step 41 of 50, and why.
+
+### Next
+
+Day 5: evaluate the step-41 model against the base model. The full plan (2 models, 349 tasks,
+4 attempts each, about 2,800 episodes) would take about 5 hours on two H100s, more than the
+remaining budget allows. To decide next session: a reduced evaluation, for example the first
+50 tasks of each set with 4 attempts (800 episodes, about $15-20).
+
