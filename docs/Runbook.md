@@ -122,31 +122,64 @@ TINKER_BASE_URL=<p43noiw url> uv run python scripts/train_async.py --config conf
 
 Stop the three apps and push the logs as on Day 2.
 
-## Day 4 - TextCraft (~$100-130)
+## Day 4 - TextCraft on Modal, detached (~$100-130)
 
-Only after Day 3 looked healthy. Set the Codespace idle timeout to its maximum first
-(GitHub > Settings > Codespaces > Default idle timeout: 240 minutes) and run inside `tmux`.
+Only after Day 3 looked healthy. The trainer runs on Modal too, in a CPU-only container
+(`skyrl_tinker_modal/run_trainer.py`) next to the 4xH100 server, so the Codespace can be
+stopped once the full run is launched. Logs go to the `scottyrl-trainer-runs` volume.
+
+The runner retries a crashed trainer twice (resuming from the last 10-step checkpoint, or
+starting over if it died before step 10) and stops the run at 12 hours with SIGINT, so the
+checkpoint manifest is still written.
+
+**Tonight, in the Codespace**
 
 ```bash
+git pull
+uv run pytest tests/test_modal_runner.py
+
+# deploy both apps; the second builds a small CPU image the first time (a few minutes)
 cd skyrl_tinker_modal && uv run modal deploy serve_textcraft.py && cd ..
-export TINKER_BASE_URL=<textcraft url>
+uv run modal deploy skyrl_tinker_modal/run_trainer.py
 
-# short probe, about 20-30 minutes
-uv run python scripts/train_async.py --config configs/p5_textcraft_grpo.yaml \
+# probe, 2 steps, about 20-30 minutes, most of it the 4xH100 cold start
+uv run python scripts/launch_on_modal.py --config configs/p5_textcraft_grpo.yaml \
     --set train.num_steps=2 --set train.eval_every=0 --set train.run_name=probe_p5
-
-# the real run, 6-8 hours
-uv run python scripts/train_async.py --config configs/p5_textcraft_grpo.yaml
+uv run modal app logs -f scottyrl-trainer
 ```
 
-Check on it once or twice. If the Codespace stopped, start it again and rerun the last
-command with `--set train.resume=true`; the server shuts itself down after five idle minutes,
-and the run continues from its last checkpoint. When it finishes:
+Wait for `[runner] finished probe_p5 with exit code 0` and paste the output to Claude. If it
+looks healthy, launch the real run on the same warm server:
 
 ```bash
-uv run modal app stop scottyrl-textcraft
-git add runs/*.jsonl runs/*.json && git commit -m "Add Part 5 run log" && git push
+uv run python scripts/launch_on_modal.py --config configs/p5_textcraft_grpo.yaml
+uv run modal app logs -f scottyrl-trainer     # see it start, then Ctrl-C (watching only)
 ```
+
+Then stop the Codespace. The run does not need it.
+
+**In the morning**
+
+```bash
+uv run modal app logs scottyrl-trainer        # last 100 lines; look for "[runner] finished"
+uv run modal volume ls scottyrl-trainer-runs runs
+for f in p5_textcraft_grpo.jsonl p5_textcraft_grpo.resume.json \
+         p5_textcraft_grpo.checkpoints.json p5_textcraft_grpo.console.log; do
+  uv run modal volume get scottyrl-trainer-runs runs/$f runs/$f
+done
+uv run modal volume get scottyrl-trainer-runs runs/p5_textcraft_grpo_trajectories runs/p5_textcraft_grpo_trajectories
+uv run modal app stop scottyrl-textcraft -y
+uv run modal app list
+git add runs/p5_textcraft_grpo.jsonl runs/p5_textcraft_grpo.resume.json \
+        runs/p5_textcraft_grpo.checkpoints.json
+git commit -m "Add Part 5 run log" && git push
+```
+
+If the runner gave up (no retries left, or the 12-hour cap), continue it with
+`uv run python scripts/launch_on_modal.py --config configs/p5_textcraft_grpo.yaml --resume`.
+
+Emergency stop at any time: `uv run modal app stop scottyrl-trainer -y` (kills the trainer;
+redeploy `run_trainer.py` before launching again), then `uv run modal app stop scottyrl-textcraft -y`.
 
 ## Day 5 - Evaluation (~$10-20)
 

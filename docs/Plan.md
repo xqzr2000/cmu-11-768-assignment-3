@@ -26,6 +26,7 @@ cannot be, which here is the H100s.
 | Adapter published to Hugging Face for the graders | Skipped. The adapter is downloaded from the Modal volume and evaluated from the local copy |
 | Weights & Biases charts | Skipped. Plots are made from the `runs/*.jsonl` logs in this repo |
 | Report submitted to the course | Written to `docs/Report.md` |
+| Part 5 trainer run from your own machine | Run on Modal as well, in a CPU-only container next to the GPU server (`run_trainer.py`), so the 6-8 hour run survives the Codespace being stopped |
 
 Model, LoRA rank, environments, algorithms, configs and run names are unchanged, so the
 results are comparable with the course's.
@@ -40,7 +41,7 @@ time. Commands are in [Runbook.md](Runbook.md).
 | 1 (done Nov 10) | Merge the pull requests, open a Codespace, run the tests, sign up for Modal, add secrets, build the image, 10-step probe | ~$5 |
 | 2 (done Nov 11) | `p2a`, `p2b`, `p41` in parallel on three sync servers | ~$30 |
 | 3 (done Nov 12) | Async probe and `p3` on Nov 11 (held to one run by Modal's $20 spend limit); limit raised, both `p43` runs probed and run on Nov 12 | ~$30 |
-| 4 | Install `tmux`, TextCraft probe, then launch `p5` and leave it running (6-8 hours) | ~$100-130 |
+| 4 | Deploy the trainer app, TextCraft probe, then launch `p5` on Modal and stop the Codespace (6-8 hours) | ~$100-130 |
 | 5 | Download the adapter, run the four evaluations, stop every app, push the logs | ~$10-20 |
 | 6 | Read the report Claude builds from the logs | $0 |
 | 7 | Spare day for a rerun | - |
