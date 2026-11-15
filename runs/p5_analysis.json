@@ -1,0 +1,1370 @@
+{
+ "source": "runs/p5_textcraft_grpo_trajectories",
+ "files": 2004,
+ "unreadable_files": 0,
+ "size_bins_are": "items the task needs crafted (num_craft_steps)",
+ "train": {
+  "5": {
+   "episodes": 92,
+   "tasks": 31,
+   "success": 0.109,
+   "policy_versions": [
+    2,
+    4
+   ],
+   "outcomes": {
+    "out_of_turns": 67,
+    "solved": 10,
+    "finished_without_target": 15
+   },
+   "avg_turns": 63.772,
+   "turn_share": {
+    "craft_ok": 0.1006,
+    "craft_rejected": 0.0622,
+    "finish": 0.0043,
+    "invalid_call": 0.0056,
+    "inventory": 0.0709,
+    "lookup": 0.1503,
+    "no_tool_call": 0.6061
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0024,
+    "craft_rejected:count_not_divisible": 0.0114,
+    "craft_rejected:missing_ingredient": 0.0148,
+    "craft_rejected:no_recipe": 0.0014,
+    "craft_rejected:not_in_inventory": 0.0073,
+    "craft_rejected:wrong_amount": 0.0249,
+    "invalid_call:get_info": 0.001,
+    "invalid_call:unknown_tool": 0.0046,
+    "no_tool_call:malformed_after_thinking": 0.3284,
+    "no_tool_call:no_end_of_thinking": 0.1936,
+    "no_tool_call:still_thinking_at_token_limit": 0.084
+   },
+   "repeated_call_share": 0.0902,
+   "items_per_lookup": 4.81,
+   "relookup_share_of_items": 0.327,
+   "turns_per_item_when_solved": 2.781,
+   "progress_when_failed": 0.218,
+   "tokens_per_turn": {
+    "all": 171.221,
+    "solved": 254.657,
+    "failed": 161.045,
+    "first10_solved": 284.15,
+    "first10_failed": 275.689
+   },
+   "think_chars_per_turn": 408.039,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 4,
+    "mean_difference": 74.435,
+    "share_solved_used_fewer": 0.25,
+    "first10_mean_difference": -1.189,
+    "first10_share_solved_used_fewer": 0.5
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 24,
+     "success": 0.417,
+     "progress_when_failed": 0.363,
+     "turns_when_solved": 29.9
+    },
+    "15-22": {
+     "episodes": 24,
+     "success": 0.0,
+     "progress_when_failed": 0.25,
+     "turns_when_solved": null
+    },
+    "23-31": {
+     "episodes": 10,
+     "success": 0.0,
+     "progress_when_failed": 0.157,
+     "turns_when_solved": null
+    },
+    "32+": {
+     "episodes": 34,
+     "success": 0.0,
+     "progress_when_failed": 0.155,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "10": {
+   "episodes": 97,
+   "tasks": 33,
+   "success": 0.175,
+   "policy_versions": [
+    6,
+    9
+   ],
+   "outcomes": {
+    "out_of_turns": 55,
+    "solved": 17,
+    "finished_without_target": 25
+   },
+   "avg_turns": 56.278,
+   "turn_share": {
+    "craft_ok": 0.1044,
+    "craft_rejected": 0.0573,
+    "finish": 0.0077,
+    "invalid_call": 0.0044,
+    "inventory": 0.079,
+    "lookup": 0.1427,
+    "no_tool_call": 0.6045
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0029,
+    "craft_rejected:count_not_divisible": 0.011,
+    "craft_rejected:extra_ingredient": 0.0005,
+    "craft_rejected:missing_ingredient": 0.013,
+    "craft_rejected:no_recipe": 0.0004,
+    "craft_rejected:not_in_inventory": 0.0066,
+    "craft_rejected:wrong_amount": 0.0229,
+    "invalid_call:get_info": 0.0005,
+    "invalid_call:unknown_tool": 0.0038,
+    "no_tool_call:malformed_after_thinking": 0.3219,
+    "no_tool_call:no_end_of_thinking": 0.1933,
+    "no_tool_call:still_thinking_at_token_limit": 0.0894
+   },
+   "repeated_call_share": 0.1002,
+   "items_per_lookup": 4.58,
+   "relookup_share_of_items": 0.2898,
+   "turns_per_item_when_solved": 2.859,
+   "progress_when_failed": 0.216,
+   "tokens_per_turn": {
+    "all": 179.354,
+    "solved": 250.039,
+    "failed": 164.333,
+    "first10_solved": 297.371,
+    "first10_failed": 286.285
+   },
+   "think_chars_per_turn": 428.31,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 7,
+    "mean_difference": 114.257,
+    "share_solved_used_fewer": 0.143,
+    "first10_mean_difference": -2.588,
+    "first10_share_solved_used_fewer": 0.429
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 34,
+     "success": 0.353,
+     "progress_when_failed": 0.366,
+     "turns_when_solved": 22.75
+    },
+    "15-22": {
+     "episodes": 38,
+     "success": 0.105,
+     "progress_when_failed": 0.213,
+     "turns_when_solved": 41.75
+    },
+    "23-31": {
+     "episodes": 9,
+     "success": 0.111,
+     "progress_when_failed": 0.161,
+     "turns_when_solved": 64.0
+    },
+    "32+": {
+     "episodes": 16,
+     "success": 0.0,
+     "progress_when_failed": 0.042,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "15": {
+   "episodes": 190,
+   "tasks": 40,
+   "success": 0.263,
+   "policy_versions": [
+    11,
+    14
+   ],
+   "outcomes": {
+    "finished_without_target": 23,
+    "solved": 50,
+    "out_of_turns": 117
+   },
+   "avg_turns": 58.711,
+   "turn_share": {
+    "craft_ok": 0.1352,
+    "craft_rejected": 0.0674,
+    "finish": 0.0065,
+    "invalid_call": 0.0033,
+    "inventory": 0.0656,
+    "lookup": 0.1437,
+    "no_tool_call": 0.5782
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0022,
+    "craft_rejected:count_not_divisible": 0.0108,
+    "craft_rejected:extra_ingredient": 0.0005,
+    "craft_rejected:missing_ingredient": 0.0103,
+    "craft_rejected:no_recipe": 0.0011,
+    "craft_rejected:not_in_inventory": 0.0074,
+    "craft_rejected:wrong_amount": 0.0351,
+    "invalid_call:get_info": 0.0011,
+    "invalid_call:unknown_tool": 0.0022,
+    "no_tool_call:malformed_after_thinking": 0.3177,
+    "no_tool_call:no_end_of_thinking": 0.1639,
+    "no_tool_call:still_thinking_at_token_limit": 0.0966
+   },
+   "repeated_call_share": 0.0826,
+   "items_per_lookup": 4.74,
+   "relookup_share_of_items": 0.2959,
+   "turns_per_item_when_solved": 3.37,
+   "progress_when_failed": 0.28,
+   "tokens_per_turn": {
+    "all": 187.349,
+    "solved": 259.662,
+    "failed": 161.523,
+    "first10_solved": 301.493,
+    "first10_failed": 282.937
+   },
+   "think_chars_per_turn": 424.911,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 13,
+    "mean_difference": 91.244,
+    "share_solved_used_fewer": 0.077,
+    "first10_mean_difference": 4.621,
+    "first10_share_solved_used_fewer": 0.385
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 75,
+     "success": 0.587,
+     "progress_when_failed": 0.359,
+     "turns_when_solved": 27.295
+    },
+    "15-22": {
+     "episodes": 48,
+     "success": 0.125,
+     "progress_when_failed": 0.315,
+     "turns_when_solved": 49.667
+    },
+    "23-31": {
+     "episodes": 35,
+     "success": 0.0,
+     "progress_when_failed": 0.246,
+     "turns_when_solved": null
+    },
+    "32+": {
+     "episodes": 32,
+     "success": 0.0,
+     "progress_when_failed": 0.196,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "20": {
+   "episodes": 156,
+   "tasks": 38,
+   "success": 0.301,
+   "policy_versions": [
+    16,
+    19
+   ],
+   "outcomes": {
+    "out_of_turns": 85,
+    "finished_without_target": 24,
+    "solved": 47
+   },
+   "avg_turns": 58.872,
+   "turn_share": {
+    "craft_ok": 0.1733,
+    "craft_rejected": 0.0872,
+    "finish": 0.0077,
+    "invalid_call": 0.0039,
+    "inventory": 0.0569,
+    "lookup": 0.132,
+    "no_tool_call": 0.5389
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0028,
+    "craft_rejected:count_not_divisible": 0.0174,
+    "craft_rejected:extra_ingredient": 0.0008,
+    "craft_rejected:missing_ingredient": 0.0121,
+    "craft_rejected:no_recipe": 0.0009,
+    "craft_rejected:not_in_inventory": 0.0114,
+    "craft_rejected:wrong_amount": 0.0418,
+    "invalid_call:get_info": 0.0011,
+    "invalid_call:unknown_tool": 0.0028,
+    "no_tool_call:malformed_after_thinking": 0.3029,
+    "no_tool_call:no_end_of_thinking": 0.1363,
+    "no_tool_call:still_thinking_at_token_limit": 0.0996
+   },
+   "repeated_call_share": 0.0834,
+   "items_per_lookup": 4.58,
+   "relookup_share_of_items": 0.2537,
+   "turns_per_item_when_solved": 3.139,
+   "progress_when_failed": 0.306,
+   "tokens_per_turn": {
+    "all": 191.338,
+    "solved": 252.632,
+    "failed": 164.909,
+    "first10_solved": 296.655,
+    "first10_failed": 285.032
+   },
+   "think_chars_per_turn": 422.983,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 14,
+    "mean_difference": 106.949,
+    "share_solved_used_fewer": 0.071,
+    "first10_mean_difference": 4.209,
+    "first10_share_solved_used_fewer": 0.429
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 58,
+     "success": 0.621,
+     "progress_when_failed": 0.444,
+     "turns_when_solved": 34.083
+    },
+    "15-22": {
+     "episodes": 39,
+     "success": 0.231,
+     "progress_when_failed": 0.293,
+     "turns_when_solved": 49.0
+    },
+    "23-31": {
+     "episodes": 41,
+     "success": 0.049,
+     "progress_when_failed": 0.29,
+     "turns_when_solved": 51.0
+    },
+    "32+": {
+     "episodes": 18,
+     "success": 0.0,
+     "progress_when_failed": 0.193,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "25": {
+   "episodes": 168,
+   "tasks": 38,
+   "success": 0.488,
+   "policy_versions": [
+    10,
+    24
+   ],
+   "outcomes": {
+    "out_of_turns": 65,
+    "solved": 82,
+    "finished_without_target": 20,
+    "abandoned": 1
+   },
+   "avg_turns": 50.554,
+   "turn_share": {
+    "abandoned": 0.0001,
+    "craft_ok": 0.2358,
+    "craft_rejected": 0.0976,
+    "finish": 0.012,
+    "invalid_call": 0.0024,
+    "inventory": 0.0615,
+    "lookup": 0.1459,
+    "no_tool_call": 0.4447
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0022,
+    "craft_rejected:count_not_divisible": 0.0191,
+    "craft_rejected:extra_ingredient": 0.0008,
+    "craft_rejected:missing_ingredient": 0.013,
+    "craft_rejected:no_recipe": 0.0007,
+    "craft_rejected:not_in_inventory": 0.0142,
+    "craft_rejected:wrong_amount": 0.0476,
+    "invalid_call:get_info": 0.0006,
+    "invalid_call:unknown_tool": 0.0016,
+    "invalid_call:view_inventory": 0.0001,
+    "no_tool_call:malformed_after_thinking": 0.2749,
+    "no_tool_call:no_end_of_thinking": 0.0631,
+    "no_tool_call:still_thinking_at_token_limit": 0.1067
+   },
+   "repeated_call_share": 0.1004,
+   "items_per_lookup": 4.29,
+   "relookup_share_of_items": 0.2198,
+   "turns_per_item_when_solved": 2.849,
+   "progress_when_failed": 0.325,
+   "tokens_per_turn": {
+    "all": 205.104,
+    "solved": 233.996,
+    "failed": 177.556,
+    "first10_solved": 277.355,
+    "first10_failed": 276.558
+   },
+   "think_chars_per_turn": 448.018,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 16,
+    "mean_difference": 54.115,
+    "share_solved_used_fewer": 0.312,
+    "first10_mean_difference": -21.215,
+    "first10_share_solved_used_fewer": 0.812
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 67,
+     "success": 0.851,
+     "progress_when_failed": 0.494,
+     "turns_when_solved": 27.93
+    },
+    "15-22": {
+     "episodes": 50,
+     "success": 0.48,
+     "progress_when_failed": 0.404,
+     "turns_when_solved": 48.417
+    },
+    "23-31": {
+     "episodes": 23,
+     "success": 0.043,
+     "progress_when_failed": 0.329,
+     "turns_when_solved": 69.0
+    },
+    "32+": {
+     "episodes": 28,
+     "success": 0.0,
+     "progress_when_failed": 0.19,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "30": {
+   "episodes": 159,
+   "tasks": 39,
+   "success": 0.516,
+   "policy_versions": [
+    26,
+    29
+   ],
+   "outcomes": {
+    "solved": 82,
+    "out_of_turns": 61,
+    "finished_without_target": 15,
+    "out_of_turns_target_crafted": 1
+   },
+   "avg_turns": 52.95,
+   "turn_share": {
+    "craft_ok": 0.3125,
+    "craft_rejected": 0.1232,
+    "finish": 0.0115,
+    "invalid_call": 0.0021,
+    "inventory": 0.0764,
+    "lookup": 0.1431,
+    "no_tool_call": 0.3312
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0021,
+    "craft_rejected:count_not_divisible": 0.019,
+    "craft_rejected:extra_ingredient": 0.0015,
+    "craft_rejected:missing_ingredient": 0.0165,
+    "craft_rejected:no_recipe": 0.0014,
+    "craft_rejected:not_in_inventory": 0.0207,
+    "craft_rejected:wrong_amount": 0.0619,
+    "invalid_call:get_info": 0.0004,
+    "invalid_call:unknown_tool": 0.0018,
+    "no_tool_call:malformed_after_thinking": 0.1564,
+    "no_tool_call:no_end_of_thinking": 0.0625,
+    "no_tool_call:still_thinking_at_token_limit": 0.1122
+   },
+   "repeated_call_share": 0.1308,
+   "items_per_lookup": 4.76,
+   "relookup_share_of_items": 0.2411,
+   "turns_per_item_when_solved": 2.828,
+   "progress_when_failed": 0.496,
+   "tokens_per_turn": {
+    "all": 217.328,
+    "solved": 235.043,
+    "failed": 198.462,
+    "first10_solved": 276.694,
+    "first10_failed": 276.161
+   },
+   "think_chars_per_turn": 452.203,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 16,
+    "mean_difference": 52.106,
+    "share_solved_used_fewer": 0.188,
+    "first10_mean_difference": -2.93,
+    "first10_share_solved_used_fewer": 0.625
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 46,
+     "success": 0.87,
+     "progress_when_failed": 0.589,
+     "turns_when_solved": 27.275
+    },
+    "15-22": {
+     "episodes": 48,
+     "success": 0.562,
+     "progress_when_failed": 0.512,
+     "turns_when_solved": 47.444
+    },
+    "23-31": {
+     "episodes": 49,
+     "success": 0.306,
+     "progress_when_failed": 0.564,
+     "turns_when_solved": 61.733
+    },
+    "32+": {
+     "episodes": 16,
+     "success": 0.0,
+     "progress_when_failed": 0.296,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "35": {
+   "episodes": 143,
+   "tasks": 35,
+   "success": 0.434,
+   "policy_versions": [
+    21,
+    34
+   ],
+   "outcomes": {
+    "abandoned": 1,
+    "out_of_turns": 64,
+    "solved": 62,
+    "finished_without_target": 15,
+    "out_of_turns_target_crafted": 1
+   },
+   "avg_turns": 55.72,
+   "turn_share": {
+    "abandoned": 0.0001,
+    "craft_ok": 0.3284,
+    "craft_rejected": 0.1565,
+    "finish": 0.0097,
+    "invalid_call": 0.0009,
+    "inventory": 0.0683,
+    "lookup": 0.1413,
+    "no_tool_call": 0.2948
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0019,
+    "craft_rejected:count_not_divisible": 0.024,
+    "craft_rejected:extra_ingredient": 0.0019,
+    "craft_rejected:missing_ingredient": 0.0182,
+    "craft_rejected:no_recipe": 0.0015,
+    "craft_rejected:not_in_inventory": 0.031,
+    "craft_rejected:wrong_amount": 0.0781,
+    "invalid_call:get_info": 0.0003,
+    "invalid_call:unknown_tool": 0.0006,
+    "no_tool_call:malformed_after_thinking": 0.1613,
+    "no_tool_call:no_end_of_thinking": 0.0279,
+    "no_tool_call:still_thinking_at_token_limit": 0.1057
+   },
+   "repeated_call_share": 0.1564,
+   "items_per_lookup": 5.02,
+   "relookup_share_of_items": 0.2611,
+   "turns_per_item_when_solved": 3.087,
+   "progress_when_failed": 0.473,
+   "tokens_per_turn": {
+    "all": 211.883,
+    "solved": 227.858,
+    "failed": 199.655,
+    "first10_solved": 278.642,
+    "first10_failed": 279.744
+   },
+   "think_chars_per_turn": 444.705,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 12,
+    "mean_difference": -0.378,
+    "share_solved_used_fewer": 0.5,
+    "first10_mean_difference": -8.568,
+    "first10_share_solved_used_fewer": 0.5
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 51,
+     "success": 0.804,
+     "progress_when_failed": 0.357,
+     "turns_when_solved": 35.439
+    },
+    "15-22": {
+     "episodes": 30,
+     "success": 0.567,
+     "progress_when_failed": 0.579,
+     "turns_when_solved": 50.118
+    },
+    "23-31": {
+     "episodes": 31,
+     "success": 0.129,
+     "progress_when_failed": 0.586,
+     "turns_when_solved": 58.5
+    },
+    "32+": {
+     "episodes": 31,
+     "success": 0.0,
+     "progress_when_failed": 0.366,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "40": {
+   "episodes": 148,
+   "tasks": 35,
+   "success": 0.541,
+   "policy_versions": [
+    36,
+    39
+   ],
+   "outcomes": {
+    "out_of_turns": 53,
+    "out_of_turns_target_crafted": 2,
+    "solved": 80,
+    "finished_without_target": 13
+   },
+   "avg_turns": 49.027,
+   "turn_share": {
+    "craft_ok": 0.3764,
+    "craft_rejected": 0.1595,
+    "finish": 0.0128,
+    "invalid_call": 0.0012,
+    "inventory": 0.0719,
+    "lookup": 0.1484,
+    "no_tool_call": 0.2297
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0025,
+    "craft_rejected:count_not_divisible": 0.0263,
+    "craft_rejected:extra_ingredient": 0.0014,
+    "craft_rejected:missing_ingredient": 0.0179,
+    "craft_rejected:no_recipe": 0.0007,
+    "craft_rejected:not_in_inventory": 0.0379,
+    "craft_rejected:wrong_amount": 0.0728,
+    "invalid_call:get_info": 0.0001,
+    "invalid_call:unknown_tool": 0.0011,
+    "no_tool_call:malformed_after_thinking": 0.112,
+    "no_tool_call:no_end_of_thinking": 0.0207,
+    "no_tool_call:still_thinking_at_token_limit": 0.097
+   },
+   "repeated_call_share": 0.1657,
+   "items_per_lookup": 5.01,
+   "relookup_share_of_items": 0.2551,
+   "turns_per_item_when_solved": 2.657,
+   "progress_when_failed": 0.473,
+   "tokens_per_turn": {
+    "all": 215.931,
+    "solved": 224.531,
+    "failed": 205.814,
+    "first10_solved": 267.322,
+    "first10_failed": 268.543
+   },
+   "think_chars_per_turn": 435.068,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 10,
+    "mean_difference": 20.704,
+    "share_solved_used_fewer": 0.5,
+    "first10_mean_difference": -8.689,
+    "first10_share_solved_used_fewer": 0.5
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 52,
+     "success": 0.942,
+     "progress_when_failed": 0.473,
+     "turns_when_solved": 25.551
+    },
+    "15-22": {
+     "episodes": 33,
+     "success": 0.606,
+     "progress_when_failed": 0.39,
+     "turns_when_solved": 40.5
+    },
+    "23-31": {
+     "episodes": 34,
+     "success": 0.324,
+     "progress_when_failed": 0.573,
+     "turns_when_solved": 62.636
+    },
+    "32+": {
+     "episodes": 29,
+     "success": 0.0,
+     "progress_when_failed": 0.43,
+     "turns_when_solved": null
+    }
+   }
+  }
+ },
+ "eval": {
+  "0": {
+   "episodes": 200,
+   "tasks": 50,
+   "success": 0.115,
+   "policy_versions": null,
+   "outcomes": {
+    "solved": 23,
+    "out_of_turns": 147,
+    "finished_without_target": 30
+   },
+   "avg_turns": 64.515,
+   "turn_share": {
+    "craft_ok": 0.0971,
+    "craft_rejected": 0.0587,
+    "finish": 0.0041,
+    "invalid_call": 0.0041,
+    "inventory": 0.0639,
+    "lookup": 0.1283,
+    "no_tool_call": 0.6438
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0028,
+    "craft_rejected:count_not_divisible": 0.0118,
+    "craft_rejected:extra_ingredient": 0.0006,
+    "craft_rejected:missing_ingredient": 0.0143,
+    "craft_rejected:no_recipe": 0.0012,
+    "craft_rejected:not_in_inventory": 0.0054,
+    "craft_rejected:wrong_amount": 0.0226,
+    "invalid_call:get_info": 0.0016,
+    "invalid_call:unknown_tool": 0.0025,
+    "no_tool_call:malformed_after_thinking": 0.335,
+    "no_tool_call:no_end_of_thinking": 0.2283,
+    "no_tool_call:still_thinking_at_token_limit": 0.0804
+   },
+   "repeated_call_share": 0.0787,
+   "items_per_lookup": 4.93,
+   "relookup_share_of_items": 0.2859,
+   "turns_per_item_when_solved": 3.013,
+   "progress_when_failed": 0.235,
+   "tokens_per_turn": {
+    "all": 165.151,
+    "solved": 253.663,
+    "failed": 153.649,
+    "first10_solved": 290.287,
+    "first10_failed": 292.85
+   },
+   "think_chars_per_turn": 400.331,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 12,
+    "mean_difference": 110.786,
+    "share_solved_used_fewer": 0.083,
+    "first10_mean_difference": -23.958,
+    "first10_share_solved_used_fewer": 0.583
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 80,
+     "success": 0.275,
+     "progress_when_failed": 0.365,
+     "turns_when_solved": 30.045
+    },
+    "15-22": {
+     "episodes": 28,
+     "success": 0.036,
+     "progress_when_failed": 0.243,
+     "turns_when_solved": 34.0
+    },
+    "23-31": {
+     "episodes": 44,
+     "success": 0.0,
+     "progress_when_failed": 0.169,
+     "turns_when_solved": null
+    },
+    "32+": {
+     "episodes": 48,
+     "success": 0.0,
+     "progress_when_failed": 0.136,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "10": {
+   "episodes": 200,
+   "tasks": 50,
+   "success": 0.195,
+   "policy_versions": [
+    10,
+    10
+   ],
+   "outcomes": {
+    "out_of_turns": 129,
+    "solved": 39,
+    "finished_without_target": 30,
+    "abandoned": 2
+   },
+   "avg_turns": 60.5,
+   "turn_share": {
+    "abandoned": 0.0002,
+    "craft_ok": 0.1325,
+    "craft_rejected": 0.058,
+    "finish": 0.0057,
+    "invalid_call": 0.0031,
+    "inventory": 0.0595,
+    "lookup": 0.1337,
+    "no_tool_call": 0.6073
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0024,
+    "craft_rejected:count_not_divisible": 0.008,
+    "craft_rejected:extra_ingredient": 0.0004,
+    "craft_rejected:missing_ingredient": 0.0096,
+    "craft_rejected:no_recipe": 0.0009,
+    "craft_rejected:not_in_inventory": 0.0085,
+    "craft_rejected:wrong_amount": 0.0282,
+    "invalid_call:get_info": 0.0007,
+    "invalid_call:unknown_tool": 0.0024,
+    "no_tool_call:malformed_after_thinking": 0.3496,
+    "no_tool_call:no_end_of_thinking": 0.1666,
+    "no_tool_call:still_thinking_at_token_limit": 0.0911
+   },
+   "repeated_call_share": 0.0745,
+   "items_per_lookup": 5.11,
+   "relookup_share_of_items": 0.2825,
+   "turns_per_item_when_solved": 2.952,
+   "progress_when_failed": 0.253,
+   "tokens_per_turn": {
+    "all": 179.371,
+    "solved": 251.922,
+    "failed": 161.797,
+    "first10_solved": 289.315,
+    "first10_failed": 285.184
+   },
+   "think_chars_per_turn": 413.849,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 20,
+    "mean_difference": 94.962,
+    "share_solved_used_fewer": 0.0,
+    "first10_mean_difference": -5.018,
+    "first10_share_solved_used_fewer": 0.55
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 80,
+     "success": 0.425,
+     "progress_when_failed": 0.355,
+     "turns_when_solved": 30.647
+    },
+    "15-22": {
+     "episodes": 28,
+     "success": 0.143,
+     "progress_when_failed": 0.245,
+     "turns_when_solved": 44.0
+    },
+    "23-31": {
+     "episodes": 44,
+     "success": 0.023,
+     "progress_when_failed": 0.251,
+     "turns_when_solved": 51.0
+    },
+    "32+": {
+     "episodes": 48,
+     "success": 0.0,
+     "progress_when_failed": 0.16,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "20": {
+   "episodes": 200,
+   "tasks": 50,
+   "success": 0.335,
+   "policy_versions": [
+    20,
+    20
+   ],
+   "outcomes": {
+    "finished_without_target": 29,
+    "out_of_turns": 104,
+    "solved": 67
+   },
+   "avg_turns": 56.44,
+   "turn_share": {
+    "craft_ok": 0.2379,
+    "craft_rejected": 0.0997,
+    "finish": 0.0085,
+    "invalid_call": 0.0027,
+    "inventory": 0.0724,
+    "lookup": 0.1489,
+    "no_tool_call": 0.43
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0024,
+    "craft_rejected:count_not_divisible": 0.0154,
+    "craft_rejected:extra_ingredient": 0.0012,
+    "craft_rejected:missing_ingredient": 0.016,
+    "craft_rejected:no_recipe": 0.0009,
+    "craft_rejected:not_in_inventory": 0.0159,
+    "craft_rejected:wrong_amount": 0.0477,
+    "invalid_call:finish": 0.0001,
+    "invalid_call:get_info": 0.0006,
+    "invalid_call:unknown_tool": 0.0019,
+    "no_tool_call:malformed_after_thinking": 0.2548,
+    "no_tool_call:no_end_of_thinking": 0.0721,
+    "no_tool_call:still_thinking_at_token_limit": 0.1031
+   },
+   "repeated_call_share": 0.1161,
+   "items_per_lookup": 4.71,
+   "relookup_share_of_items": 0.2832,
+   "turns_per_item_when_solved": 2.699,
+   "progress_when_failed": 0.376,
+   "tokens_per_turn": {
+    "all": 203.089,
+    "solved": 239.863,
+    "failed": 184.565,
+    "first10_solved": 287.851,
+    "first10_failed": 274.187
+   },
+   "think_chars_per_turn": 441.372,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 26,
+    "mean_difference": 64.066,
+    "share_solved_used_fewer": 0.154,
+    "first10_mean_difference": 5.293,
+    "first10_share_solved_used_fewer": 0.385
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 80,
+     "success": 0.6,
+     "progress_when_failed": 0.487,
+     "turns_when_solved": 28.542
+    },
+    "15-22": {
+     "episodes": 28,
+     "success": 0.393,
+     "progress_when_failed": 0.396,
+     "turns_when_solved": 41.545
+    },
+    "23-31": {
+     "episodes": 44,
+     "success": 0.182,
+     "progress_when_failed": 0.371,
+     "turns_when_solved": 63.25
+    },
+    "32+": {
+     "episodes": 48,
+     "success": 0.0,
+     "progress_when_failed": 0.3,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "30": {
+   "episodes": 200,
+   "tasks": 50,
+   "success": 0.5,
+   "policy_versions": [
+    30,
+    30
+   ],
+   "outcomes": {
+    "solved": 100,
+    "finished_without_target": 20,
+    "out_of_turns": 79,
+    "out_of_turns_target_crafted": 1
+   },
+   "avg_turns": 53.0,
+   "turn_share": {
+    "craft_ok": 0.3355,
+    "craft_rejected": 0.1352,
+    "finish": 0.0113,
+    "invalid_call": 0.0025,
+    "inventory": 0.0716,
+    "lookup": 0.1542,
+    "no_tool_call": 0.2897
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0027,
+    "craft_rejected:count_not_divisible": 0.0208,
+    "craft_rejected:extra_ingredient": 0.001,
+    "craft_rejected:missing_ingredient": 0.0171,
+    "craft_rejected:no_recipe": 0.0014,
+    "craft_rejected:not_in_inventory": 0.0258,
+    "craft_rejected:wrong_amount": 0.0663,
+    "invalid_call:finish": 0.0002,
+    "invalid_call:get_info": 0.0004,
+    "invalid_call:unknown_tool": 0.002,
+    "no_tool_call:malformed_after_thinking": 0.1566,
+    "no_tool_call:no_end_of_thinking": 0.0267,
+    "no_tool_call:still_thinking_at_token_limit": 0.1064
+   },
+   "repeated_call_share": 0.1301,
+   "items_per_lookup": 4.85,
+   "relookup_share_of_items": 0.2396,
+   "turns_per_item_when_solved": 2.737,
+   "progress_when_failed": 0.473,
+   "tokens_per_turn": {
+    "all": 221.193,
+    "solved": 238.213,
+    "failed": 204.173,
+    "first10_solved": 279.629,
+    "first10_failed": 276.102
+   },
+   "think_chars_per_turn": 464.193,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 21,
+    "mean_difference": 39.78,
+    "share_solved_used_fewer": 0.238,
+    "first10_mean_difference": -1.798,
+    "first10_share_solved_used_fewer": 0.619
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 80,
+     "success": 0.85,
+     "progress_when_failed": 0.418,
+     "turns_when_solved": 30.75
+    },
+    "15-22": {
+     "episodes": 28,
+     "success": 0.679,
+     "progress_when_failed": 0.523,
+     "turns_when_solved": 45.158
+    },
+    "23-31": {
+     "episodes": 44,
+     "success": 0.295,
+     "progress_when_failed": 0.56,
+     "turns_when_solved": 62.769
+    },
+    "32+": {
+     "episodes": 48,
+     "success": 0.0,
+     "progress_when_failed": 0.422,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "40": {
+   "episodes": 51,
+   "tasks": 17,
+   "success": 0.843,
+   "policy_versions": [
+    40,
+    40
+   ],
+   "outcomes": {
+    "finished_without_target": 3,
+    "solved": 43,
+    "out_of_turns": 5
+   },
+   "avg_turns": 36.745,
+   "turn_share": {
+    "craft_ok": 0.3831,
+    "craft_rejected": 0.1334,
+    "finish": 0.0245,
+    "invalid_call": 0.0027,
+    "inventory": 0.0646,
+    "lookup": 0.151,
+    "no_tool_call": 0.2407
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0011,
+    "craft_rejected:count_not_divisible": 0.0187,
+    "craft_rejected:missing_ingredient": 0.0171,
+    "craft_rejected:no_recipe": 0.0005,
+    "craft_rejected:not_in_inventory": 0.0144,
+    "craft_rejected:wrong_amount": 0.0816,
+    "invalid_call:get_info": 0.0005,
+    "invalid_call:unknown_tool": 0.0021,
+    "no_tool_call:malformed_after_thinking": 0.1302,
+    "no_tool_call:no_end_of_thinking": 0.0128,
+    "no_tool_call:still_thinking_at_token_limit": 0.0977
+   },
+   "repeated_call_share": 0.0961,
+   "items_per_lookup": 3.96,
+   "relookup_share_of_items": 0.1464,
+   "turns_per_item_when_solved": 2.569,
+   "progress_when_failed": 0.313,
+   "tokens_per_turn": {
+    "all": 226.557,
+    "solved": 234.187,
+    "failed": 185.547,
+    "first10_solved": 274.9,
+    "first10_failed": 264.406
+   },
+   "think_chars_per_turn": 457.733,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 5,
+    "mean_difference": -3.714,
+    "share_solved_used_fewer": 0.6,
+    "first10_mean_difference": -3.156,
+    "first10_share_solved_used_fewer": 0.6
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 30,
+     "success": 0.933,
+     "progress_when_failed": 0.458,
+     "turns_when_solved": 27.429
+    },
+    "15-22": {
+     "episodes": 14,
+     "success": 0.929,
+     "progress_when_failed": 0.0,
+     "turns_when_solved": 43.231
+    },
+    "23-31": {
+     "episodes": 5,
+     "success": 0.4,
+     "progress_when_failed": 0.394,
+     "turns_when_solved": 52.0
+    },
+    "32+": {
+     "episodes": 2,
+     "success": 0.0,
+     "progress_when_failed": 0.203,
+     "turns_when_solved": null
+    }
+   }
+  }
+ },
+ "train_pooled": {
+  "early_5-10": {
+   "episodes": 189,
+   "tasks": 64,
+   "success": 0.143,
+   "policy_versions": [
+    2,
+    9
+   ],
+   "outcomes": {
+    "out_of_turns": 122,
+    "solved": 27,
+    "finished_without_target": 40
+   },
+   "avg_turns": 59.926,
+   "turn_share": {
+    "craft_ok": 0.1024,
+    "craft_rejected": 0.0599,
+    "finish": 0.0059,
+    "invalid_call": 0.005,
+    "inventory": 0.0748,
+    "lookup": 0.1467,
+    "no_tool_call": 0.6053
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0026,
+    "craft_rejected:count_not_divisible": 0.0112,
+    "craft_rejected:extra_ingredient": 0.0003,
+    "craft_rejected:missing_ingredient": 0.014,
+    "craft_rejected:no_recipe": 0.0009,
+    "craft_rejected:not_in_inventory": 0.007,
+    "craft_rejected:wrong_amount": 0.0239,
+    "invalid_call:get_info": 0.0008,
+    "invalid_call:unknown_tool": 0.0042,
+    "no_tool_call:malformed_after_thinking": 0.3253,
+    "no_tool_call:no_end_of_thinking": 0.1934,
+    "no_tool_call:still_thinking_at_token_limit": 0.0866
+   },
+   "repeated_call_share": 0.095,
+   "items_per_lookup": 4.7,
+   "relookup_share_of_items": 0.31,
+   "turns_per_item_when_solved": 2.83,
+   "progress_when_failed": 0.217,
+   "tokens_per_turn": {
+    "all": 175.395,
+    "solved": 251.75,
+    "failed": 162.669,
+    "first10_solved": 292.474,
+    "first10_failed": 280.922
+   },
+   "think_chars_per_turn": 418.442,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 11,
+    "mean_difference": 99.777,
+    "share_solved_used_fewer": 0.182,
+    "first10_mean_difference": -2.079,
+    "first10_share_solved_used_fewer": 0.455
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 58,
+     "success": 0.379,
+     "progress_when_failed": 0.365,
+     "turns_when_solved": 26.0
+    },
+    "15-22": {
+     "episodes": 62,
+     "success": 0.065,
+     "progress_when_failed": 0.228,
+     "turns_when_solved": 41.75
+    },
+    "23-31": {
+     "episodes": 19,
+     "success": 0.053,
+     "progress_when_failed": 0.159,
+     "turns_when_solved": 64.0
+    },
+    "32+": {
+     "episodes": 50,
+     "success": 0.0,
+     "progress_when_failed": 0.119,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "middle_15-25": {
+   "episodes": 514,
+   "tasks": 116,
+   "success": 0.348,
+   "policy_versions": [
+    10,
+    24
+   ],
+   "outcomes": {
+    "finished_without_target": 67,
+    "solved": 179,
+    "out_of_turns": 267,
+    "abandoned": 1
+   },
+   "avg_turns": 56.093,
+   "turn_share": {
+    "abandoned": 0.0,
+    "craft_ok": 0.177,
+    "craft_rejected": 0.0826,
+    "finish": 0.0085,
+    "invalid_call": 0.0032,
+    "inventory": 0.0616,
+    "lookup": 0.1406,
+    "no_tool_call": 0.5264
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0024,
+    "craft_rejected:count_not_divisible": 0.0153,
+    "craft_rejected:extra_ingredient": 0.0007,
+    "craft_rejected:missing_ingredient": 0.0117,
+    "craft_rejected:no_recipe": 0.0009,
+    "craft_rejected:not_in_inventory": 0.0107,
+    "craft_rejected:wrong_amount": 0.0409,
+    "invalid_call:get_info": 0.0009,
+    "invalid_call:unknown_tool": 0.0023,
+    "invalid_call:view_inventory": 0.0,
+    "no_tool_call:malformed_after_thinking": 0.3004,
+    "no_tool_call:no_end_of_thinking": 0.1254,
+    "no_tool_call:still_thinking_at_token_limit": 0.1005
+   },
+   "repeated_call_share": 0.0881,
+   "items_per_lookup": 4.55,
+   "relookup_share_of_items": 0.2613,
+   "turns_per_item_when_solved": 3.071,
+   "progress_when_failed": 0.3,
+   "tokens_per_turn": {
+    "all": 194.363,
+    "solved": 246.058,
+    "failed": 166.74,
+    "first10_solved": 289.165,
+    "first10_failed": 281.981
+   },
+   "think_chars_per_turn": 431.878,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 43,
+    "mean_difference": 82.542,
+    "share_solved_used_fewer": 0.163,
+    "first10_mean_difference": -5.127,
+    "first10_share_solved_used_fewer": 0.558
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 200,
+     "success": 0.685,
+     "progress_when_failed": 0.41,
+     "turns_when_solved": 29.343
+    },
+    "15-22": {
+     "episodes": 137,
+     "success": 0.285,
+     "progress_when_failed": 0.332,
+     "turns_when_solved": 48.744
+    },
+    "23-31": {
+     "episodes": 99,
+     "success": 0.03,
+     "progress_when_failed": 0.283,
+     "turns_when_solved": 57.0
+    },
+    "32+": {
+     "episodes": 78,
+     "success": 0.0,
+     "progress_when_failed": 0.193,
+     "turns_when_solved": null
+    }
+   }
+  },
+  "late_30-40": {
+   "episodes": 450,
+   "tasks": 109,
+   "success": 0.498,
+   "policy_versions": [
+    21,
+    39
+   ],
+   "outcomes": {
+    "solved": 224,
+    "out_of_turns": 178,
+    "finished_without_target": 43,
+    "out_of_turns_target_crafted": 4,
+    "abandoned": 1
+   },
+   "avg_turns": 52.54,
+   "turn_share": {
+    "abandoned": 0.0,
+    "craft_ok": 0.3375,
+    "craft_rejected": 0.1455,
+    "finish": 0.0113,
+    "invalid_call": 0.0014,
+    "inventory": 0.0723,
+    "lookup": 0.1441,
+    "no_tool_call": 0.2878
+   },
+   "turn_detail_share": {
+    "craft_rejected:bad_arguments": 0.0022,
+    "craft_rejected:count_not_divisible": 0.0229,
+    "craft_rejected:extra_ingredient": 0.0016,
+    "craft_rejected:missing_ingredient": 0.0175,
+    "craft_rejected:no_recipe": 0.0012,
+    "craft_rejected:not_in_inventory": 0.0294,
+    "craft_rejected:wrong_amount": 0.0707,
+    "invalid_call:get_info": 0.0003,
+    "invalid_call:unknown_tool": 0.0012,
+    "no_tool_call:malformed_after_thinking": 0.1444,
+    "no_tool_call:no_end_of_thinking": 0.038,
+    "no_tool_call:still_thinking_at_token_limit": 0.1054
+   },
+   "repeated_call_share": 0.1501,
+   "items_per_lookup": 4.93,
+   "relookup_share_of_items": 0.2523,
+   "turns_per_item_when_solved": 2.839,
+   "progress_when_failed": 0.481,
+   "tokens_per_turn": {
+    "all": 215.138,
+    "solved": 229.3,
+    "failed": 201.102,
+    "first10_solved": 273.886,
+    "first10_failed": 275.153
+   },
+   "think_chars_per_turn": 444.185,
+   "same_task_solved_minus_failed_tokens": {
+    "tasks_with_both": 38,
+    "mean_difference": 27.268,
+    "share_solved_used_fewer": 0.368,
+    "first10_mean_difference": -6.226,
+    "first10_share_solved_used_fewer": 0.553
+   },
+   "by_size": {
+    "0-14": {
+     "episodes": 149,
+     "success": 0.872,
+     "progress_when_failed": 0.448,
+     "turns_when_solved": 29.2
+    },
+    "15-22": {
+     "episodes": 111,
+     "success": 0.577,
+     "progress_when_failed": 0.497,
+     "turns_when_solved": 45.984
+    },
+    "23-31": {
+     "episodes": 114,
+     "success": 0.263,
+     "progress_when_failed": 0.574,
+     "turns_when_solved": 61.633
+    },
+    "32+": {
+     "episodes": 76,
+     "success": 0.0,
+     "progress_when_failed": 0.376,
+     "turns_when_solved": null
+    }
+   }
+  }
+ }
+}
