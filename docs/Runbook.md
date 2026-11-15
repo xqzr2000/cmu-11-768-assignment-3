@@ -284,4 +284,8 @@ Claude it is pushed; Claude writes the findings into `Learning-Progress.md`.
 ## Day 7 - Report
 
 Claude builds the plots and `docs/Report.md`: RL findings and the Modal experience side by
-side. Nothing to run.
+side. Nothing to run. To redraw the figures from the logs:
+
+```bash
+uv run --with matplotlib python scripts/make_report_plots.py
+```
