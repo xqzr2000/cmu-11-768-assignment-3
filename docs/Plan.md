@@ -43,7 +43,7 @@ time. Commands are in [Runbook.md](Runbook.md).
 | 3 (done Nov 12) | Async probe and `p3` on Nov 11 (held to one run by Modal's $20 spend limit); limit raised, both `p43` runs probed and run on Nov 12 | ~$30 |
 | 4 (done Nov 13) | Trainer app deployed, TextCraft probe, `p5` run on Modal overnight. Stopped at step 41 of 50 after the GPU server started leaving requests stuck; about 10.5 hours of 4xH100 | ~$195 |
 | 5 (done Nov 14) | Step-41 model and base model evaluated on the same 50 validation tasks the training run used, 4 attempts each: 0.535 against 0.065. First attempt on Nov 13-14 stalled and gave no scores (~$12); the second ran on Modal in 23 and 17 minutes with no lost requests | ~$12 + ~$8-9 |
-| 6 | Analysis from the logs and trajectories (no GPU), see "Adapted plan" below | $0 |
+| 6 (done Nov 14) | Analysis from the logs and trajectories (no GPU): `scripts/analyze_p5.py`, findings in `Learning-Progress.md` | $0 |
 | 7 | Read the report Claude builds: RL findings and the cloud experience side by side | $0 |
 
 ### Adapted plan (decided Nov 13)
