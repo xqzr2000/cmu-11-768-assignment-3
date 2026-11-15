@@ -605,5 +605,73 @@ and it is in `docs/cloud-walker-Modal.md` (Nov 13-14). In short:
 
 ### Next
 
-Day 5 again, with the evaluation running on Modal (`docs/Runbook.md`).
+Day 5 again, with the evaluation running on Modal (`docs/Runbook.md`). Done on Nov 14; see
+the next entry.
+
+## Day 5 (Nov 14) - The step-41 model against the base model
+
+Both models on the first 50 validation tasks, 4 attempts each, with the training run's
+settings (thinking on, 512 tokens per turn, 75-turn limit). The adapter was served by vLLM
+alone on two H100s, outside the server that trained it. Per-episode results are in
+`runs/p5_eval_a3.jsonl` and `runs/p5_eval_Qwen_Qwen3.5-4B.jsonl`.
+
+### Results
+
+| Model | Server | Success | pass@4 | Average turns |
+|---|---|---|---|---|
+| Base model (step 0) | training | 0.115 | 0.26 | 64.5 |
+| Base model | evaluation | 0.065 | 0.14 | 67.4 |
+| Step 10 | training | 0.195 | 0.44 | 60.5 |
+| Step 20 | training | 0.335 | 0.62 | 56.4 |
+| Step 30 | training | 0.500 | 0.70 | 53.0 |
+| **Step 41 (the adapter)** | **evaluation** | **0.535** | **0.68** | **54.0** |
+
+No episode was abandoned in either evaluation, so none of these numbers is pulled down by
+lost requests.
+
+By task, out of 50:
+
+| Successes in 4 attempts | 0 | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|---|
+| Base model | 43 | 3 | 3 | 0 | 1 |
+| Step-41 model | 16 | 3 | 6 | 8 | 17 |
+
+### What the numbers say
+
+- **Training made a large, real difference.** The step-41 model did better than the base
+  model on 33 of the 50 tasks, the same on 16 and worse on 1. The base model solved one task
+  in all four attempts; the trained model did so on 17.
+- **The adapter works away from the server that trained it.** 0.535 sits right next to step
+  30's 0.500, measured on the training server. The exported LoRA weights and the prompt
+  format carry over.
+- **Steps 30 to 41 did not add anything we can measure.** With 4 attempts on each of 50
+  tasks, the uncertainty on a success rate near 0.5 is about 0.06 (computed across tasks,
+  because attempts at one task succeed or fail together). 0.500 and 0.535 are the same
+  number at that precision. Whether the curve was still rising at step 41 is not something
+  this evaluation can say.
+- **The two base-model figures are compatible.** 0.065 here and 0.115 on the training server
+  differ by 0.05, and each carries an uncertainty of about 0.03. One evaluation of this size
+  cannot tell an unlucky draw from a small difference between the servers. The report gives
+  both.
+- **16 tasks were solved by neither model, in any attempt.** A third of the validation tasks
+  are still out of reach after 41 steps. What separates them from the rest is a question for
+  the Day 6 analysis.
+- **Failing means running out of turns.** 79 of the trained model's 93 failures, and 163 of
+  the base model's 187, hit the 75-turn limit. When the trained model succeeds it takes 39.5
+  turns on average, about half the budget.
+- **Success is all-or-nothing by task more often than not.** 33 of the 50 tasks ended at 0
+  or 4 successes for the trained model. That is the same pattern that left many training
+  groups without signal: eight attempts at one task tend to agree.
+
+### For the report
+
+- The five-point success curve (steps 0, 10, 20, 30, 41), with the last point marked as
+  measured on a different server and the base model shown from both.
+- The by-task table above, as the clearest picture of what training changed.
+- The uncertainty of about 0.06, stated next to any comparison of two points on the curve.
+
+### Next
+
+Day 6: the analysis from the saved trajectories (2,004 episode transcripts, steps 0-40, in
+the Codespace under `runs/p5_textcraft_grpo_trajectories/`). See "Adapted plan" in `Plan.md`.
 

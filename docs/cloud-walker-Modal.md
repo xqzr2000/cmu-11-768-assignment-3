@@ -421,6 +421,63 @@ loop and its model were one process.
 
 **Spend so far:** about $253. The evening cost about $12 of H100 time and produced no scores.
 
+### Nov 14 - The evaluation again, from inside Modal
+
+**What we did**
+
+- Merged the fixes from the previous entry, deployed the evaluation server and the trainer
+  app, and launched a 2-episode probe with `scripts/launch_eval_on_modal.py`. It passed in
+  3.5 minutes after a 4-minute cold start: 150 requests, none lost.
+- Launched the real evaluation the same way. The adapter took 23 minutes (10,801 requests)
+  and the base model 17 minutes (13,489 requests). The speed check never fired.
+- Downloaded the four result files and the Part 5 trajectories with `modal volume get`,
+  stopped the server, committed the results.
+
+**What Modal did that surprised us**
+
+- **No lost requests at all.** 24,440 requests across the probe and both models, 0 retries.
+  The night before, from the Codespace, about 4% went missing. The server, its settings and
+  the client code's request format were the same; the path was not. That points at the
+  Codespace's connection to Modal as the place where requests were lost, though one clean
+  night is not proof.
+- **The server scaled to zero between the probe and the run.** The probe ended, the full run
+  was launched more than five minutes later, and the model had to load again: a second
+  4-minute cold start at H100 prices. Launching the run straight after the probe would have
+  avoided it.
+- **`modal app logs -f` replays earlier output.** Attaching to the trainer app showed the
+  finished probe again above the new run. The launch line (`--k 4 --num-tasks 50`) is how to
+  tell which run is on screen.
+- **A second terminal showing the server's request log** is the useful companion to the
+  client's progress lines. When the two agree on seconds per request, nothing is waiting in
+  between. A stale last timestamp there means no requests are arriving, not that the server
+  is slow.
+- **`modal volume get` on a directory works like `cp -r`.** The destination is the folder to
+  put the directory in. Naming the directory itself as the destination fails with
+  `[Errno 21] Is a directory` after printing a progress bar for every file at 0%.
+
+**AWS comparison**
+
+This is the closest Modal has come to the EC2 pattern of putting the client next to the
+server. It still is not the same thing: both containers talk through Modal's public
+endpoint, not a private network, and we do not choose where either one runs. What it bought
+was a reliable path and a job that did not need the Codespace, for a CPU container that cost
+well under a dollar.
+
+**Qwen hosting or training note**
+
+- **The adapter costs time on every request.** With 32 episodes at once, the server
+  answered base-model requests in 2.3 seconds on average and adapter requests in 3.8: about
+  13 requests per second against 8. vLLM applies the LoRA weights at request time instead of
+  merging them into the model, and that is the likely reason; we did not test a merged model
+  to confirm it.
+- **Two H100s were not the limit we feared.** Latency rose from 2.5 seconds with 2 episodes
+  to 3.8 with 32. The course's default of 128 at once was never tried on this path.
+- The step-41 adapter scored 0.535 here against 0.500 at step 30 on the training server, so
+  an adapter saved by SkyRL loads and behaves the same under plain vLLM.
+
+**Spend so far:** about $261-262. Tonight was about $8-9 by our estimate: two cold starts,
+the probe, and 40 minutes of evaluation on two H100s. The dashboard has the exact figure.
+
 ## Entry template
 
 ```
