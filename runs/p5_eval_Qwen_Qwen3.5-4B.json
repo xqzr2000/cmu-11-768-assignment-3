@@ -1,0 +1,16 @@
+{
+  "success_rate": 0.065,
+  "pass@4": 0.14,
+  "avg_steps": 67.445,
+  "abandoned_episodes": 0,
+  "num_tasks": 50,
+  "episodes_per_task": 4,
+  "resumed_episodes": 0,
+  "wall_time_s": 1017.3,
+  "requests": 13489,
+  "request_retries": 0,
+  "request_errors": {},
+  "mean_request_s": 2.25,
+  "model_path": null,
+  "model": "Qwen/Qwen3.5-4B"
+}
