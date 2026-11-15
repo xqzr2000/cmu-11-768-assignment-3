@@ -42,7 +42,7 @@ time. Commands are in [Runbook.md](Runbook.md).
 | 2 (done Nov 11) | `p2a`, `p2b`, `p41` in parallel on three sync servers | ~$30 |
 | 3 (done Nov 12) | Async probe and `p3` on Nov 11 (held to one run by Modal's $20 spend limit); limit raised, both `p43` runs probed and run on Nov 12 | ~$30 |
 | 4 (done Nov 13) | Trainer app deployed, TextCraft probe, `p5` run on Modal overnight. Stopped at step 41 of 50 after the GPU server started leaving requests stuck; about 10.5 hours of 4xH100 | ~$195 |
-| 5 | Evaluate the step-41 model and the base model on the same 50 validation tasks the training run used (4 attempts each); download the TextCraft trajectories | ~$12-16 |
+| 5 | Evaluate the step-41 model and the base model on the same 50 validation tasks the training run used (4 attempts each); download the TextCraft trajectories. First attempt on Nov 13-14 stalled and gave no scores (~$12); the second runs the evaluation on Modal with short timeouts, saved episodes and a speed check | ~$12 + ~$8-12 |
 | 6 | Analysis from the logs and trajectories (no GPU), see "Adapted plan" below | $0 |
 | 7 | Read the report Claude builds: RL findings and the cloud experience side by side | $0 |
 
@@ -67,7 +67,8 @@ fresh server and mostly extend a curve that is already clear.
   4. Number Search (Parts 2-4) against TextCraft (Part 5): two shapes of learning.
   5. Cost per point of improvement, and where the GPU time went.
 - **Report.** RL findings and the Modal experience side by side, with the AWS comparison.
-- **Budget.** About $241 spent; the reduced evaluation brings it to about $255. Going a little
+- **Budget.** About $241 spent after Day 4 and about $253 after the first evaluation attempt,
+  which gave no scores. The second attempt should bring it to about $261-265. Going a little
   over the $250 budget is accepted; the $300 Modal limit stays.
 
 Running three Number Search servers at once uses 6 H100s, inside the Starter plan's limit of 10.
@@ -81,6 +82,9 @@ Running three Number Search servers at once uses 6 H100s, inside the Starter pla
    run still using it (Nov 12).
 4. TextCraft is launched once, only after the async trainer has worked on Number Search.
 5. Stop and reassess if the Modal dashboard passes $200.
+6. Anything that talks to a server gets a timeout sized to the request, saves its results as
+   it goes, and prints its rate (Nov 14). A run we cannot see into is stopped after 10 minutes,
+   not after an hour.
 
 ## Secrets
 

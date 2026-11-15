@@ -189,42 +189,82 @@ If the runner gave up (no retries left, or the 12-hour cap), continue it with
 Emergency stop at any time: `uv run modal app stop scottyrl-trainer -y` (kills the trainer;
 redeploy `run_trainer.py` before launching again), then `uv run modal app stop scottyrl-textcraft -y`.
 
-## Day 5 - Evaluation, reduced (~$12-16)
+## Day 5 - Evaluation, reduced (~$8-12 for the second attempt)
 
 The step-41 model and the base model on the first 50 validation tasks, 4 attempts each: the
 same tasks and settings as the training run's evaluations, so the results extend its curve
 (step 0: 0.115, step 30: 0.500). See "Adapted plan" in `Plan.md`.
 
+The first attempt (Nov 13-14) ran from the Codespace and stalled; see the Nov 13-14 entry in
+`cloud-walker-Modal.md`. The evaluation now runs in a small Modal container next to the GPU
+server, saves every finished episode, and stops by itself if the server is too slow.
+
+**1. Deploy both apps** (the adapter in `runs/p5_adapter` is still in the Codespace from last time)
+
 ```bash
 git pull
-grep final_sampler_path runs/p5_textcraft_grpo.checkpoints.json   # tinker://model_367b3579/v41_r2
-
-uv run modal volume ls scottyrl-textcraft-state checkpoints/model_367b3579/sampler_weights
-uv run modal volume get scottyrl-textcraft-state \
-    checkpoints/model_367b3579/sampler_weights/v41_r2.tar.gz runs/p5_adapter.tar.gz
-mkdir -p runs/p5_adapter && tar -xf runs/p5_adapter.tar.gz -C runs/p5_adapter
-
+ls runs/p5_adapter                      # adapter_config.json, adapter_model.safetensors
 cd skyrl_tinker_modal
 LORA_ADAPTER=../runs/p5_adapter uv run modal deploy serve_evaluation.py
 cd ..
-export EVAL_SERVER=<printed url>
+uv run modal deploy skyrl_tinker_modal/run_trainer.py
+```
 
-for model in a3 Qwen/Qwen3.5-4B; do
-  uv run python scripts/evaluate_checkpoint.py --config configs/p5_textcraft_grpo.yaml \
-      --server "$EVAL_SERVER" --model "$model" --k 4 --num-tasks 50 | tee -a runs/p5_eval.txt
+If `runs/p5_adapter` is missing, download it again first:
+
+```bash
+uv run modal volume get scottyrl-textcraft-state \
+    checkpoints/model_367b3579/sampler_weights/v41_r2.tar.gz runs/p5_adapter.tar.gz
+mkdir -p runs/p5_adapter && tar -xf runs/p5_adapter.tar.gz -C runs/p5_adapter
+```
+
+**2. Probe: 2 episodes** (about 10 minutes, most of it the server's cold start; billing starts here)
+
+```bash
+uv run python scripts/launch_eval_on_modal.py --model a3 --tag probe_eval --k 1 --num-tasks 2
+uv run modal app logs -f scottyrl-trainer
+```
+
+Wait for `[runner] finished probe_eval` and paste the output to Claude.
+
+**3. The evaluation** (on the same warm server; the Codespace is not needed while it runs)
+
+```bash
+uv run python scripts/launch_eval_on_modal.py --model a3 --model Qwen/Qwen3.5-4B
+uv run modal app logs -f scottyrl-trainer
+```
+
+What to expect:
+
+- A line every 30 seconds: `[eval] 37/200 episodes, 150 s | 2310 requests, 15.4/s, mean 2.0 s, ...`.
+- The speed check. About two and a half minutes in, and from then on, the run stops by itself
+  (`STOPPED, too slow`) if it gets fewer than 3.2 requests per second while all 32 slots are
+  busy. Finished episodes stay saved; launching the same command again continues from them.
+- A few `Sampling request failed ...; retrying` lines are harmless. A steady stream is worth
+  pasting to Claude, with the progress line next to it.
+- `[runner] finished p5_eval: all 2 models evaluated` at the end. Roughly 15-40 minutes per model.
+
+**4. Download, stop, commit**
+
+```bash
+for f in p5_eval_a3.json p5_eval_Qwen_Qwen3.5-4B.json \
+         p5_eval_a3.jsonl p5_eval_Qwen_Qwen3.5-4B.jsonl; do
+  uv run modal volume get scottyrl-trainer-runs runs/$f runs/$f
 done
-
+cat runs/p5_eval_a3.json runs/p5_eval_Qwen_Qwen3.5-4B.json
 uv run modal app stop scottyrl-evaluation -y
 uv run modal app list
 
 # trajectories for the analysis (not committed; gitignored)
 uv run modal volume get scottyrl-trainer-runs runs/p5_textcraft_grpo_trajectories runs/p5_textcraft_grpo_trajectories
 
-git add -f runs/p5_eval.txt && git commit -m "Add Part 5 evaluation results" && git push
+git add runs/p5_eval_*.json runs/p5_eval_*.jsonl
+git commit -m "Add Part 5 evaluation results" && git push
 ```
 
-If the `volume ls` listing shows the snapshot under another name or extension, use that.
-Each evaluation takes roughly 20-40 minutes once the server is up; leave the terminal open.
+In each result, `abandoned_episodes` should be 0; anything else means that score is too low.
+Emergency stop: `uv run modal app stop scottyrl-trainer -y`, then
+`uv run modal app stop scottyrl-evaluation -y` (redeploy both before launching again).
 
 ## Day 6-7 - Analysis and report
 

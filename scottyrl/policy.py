@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol, Sequence, runtime_checkable
@@ -217,6 +218,20 @@ class CompletionsServerPolicy(ChatTemplatePolicy):
     `ChatTemplatePolicy`; use the same config as the training run so
     prompts render exactly as they did in training.
 
+    Timeouts and retries (changed Nov 14 after the first Part 5 evaluation
+    stalled). A sampling request takes a few seconds, so `timeout` (seconds
+    to wait for the response, default 120, under the 150 s limit Modal puts
+    on a web request) and `connect_timeout` (seconds to open a connection,
+    default 10) are short: with the earlier single 600 s timeout, a request
+    lost on the way held its episode for ten minutes, and a few percent of
+    lost requests were enough to leave almost every episode waiting. A
+    request is retried up to `max_retries` times, with a growing pause,
+    after a timeout, after a dropped, refused or reset connection, and after
+    a 408, 429 or 5xx answer; the earlier code retried timeouts only, so one
+    dropped connection ended an episode. Sampling is safe to repeat: nothing
+    on the server depends on a request having run once. `stats` counts what
+    happened.
+
     `complete` posts `prompt` as the token ids (no re-tokenization of the
     rendered text), `max_tokens`, `temperature`, `top_p: 1.0`, `top_k: -1`,
     `stop_token_ids`, `skip_special_tokens: false` and
@@ -255,7 +270,9 @@ class CompletionsServerPolicy(ChatTemplatePolicy):
         preserve_thinking_history: bool = True,
         stop_sequences: Sequence[str] = ("<|im_end|>", "<|endoftext|>"),
         api_key: str | None = None,
-        timeout: float = 600.0,
+        timeout: float = 120.0,
+        connect_timeout: float = 10.0,
+        max_retries: int = 6,
     ):
         super().__init__(
             tokenizer,
@@ -270,7 +287,18 @@ class CompletionsServerPolicy(ChatTemplatePolicy):
         self.model = model
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY") or os.environ.get("VLLM_API_KEY")
         self.timeout = timeout
+        self.connect_timeout = connect_timeout
+        self.max_retries = max_retries
         self._client = None  # httpx.AsyncClient, created on first use
+        # What the sampling requests did, for progress lines and diagnosis:
+        # `requests` answered, `retries` taken, `failed` given up on,
+        # `latency_s` total and `latency_max_s` of the answered ones (the
+        # attempt that succeeded, without earlier attempts or backoff), and
+        # `errors` counting each retried cause by name.
+        self.stats: dict = {
+            "requests": 0, "retries": 0, "failed": 0,
+            "latency_s": 0.0, "latency_max_s": 0.0, "errors": {},
+        }
 
     def _http(self):
         """The shared async HTTP client (one connection pool per policy)."""
@@ -279,8 +307,15 @@ class CompletionsServerPolicy(ChatTemplatePolicy):
         if self._client is None:
             headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
             self._client = httpx.AsyncClient(
-                base_url=self.base_url, headers=headers, timeout=self.timeout,
-                follow_redirects=True,
+                base_url=self.base_url, headers=headers, follow_redirects=True,
+                # A lost request must cost seconds, not minutes (see the
+                # class docstring). No pool limit: the caller's concurrency
+                # is the limit, and idle connections are kept for reuse so a
+                # steady run does not keep opening new ones.
+                timeout=httpx.Timeout(
+                    self.timeout, connect=self.connect_timeout, write=30.0, pool=None
+                ),
+                limits=httpx.Limits(max_connections=None, max_keepalive_connections=256),
             )
         return self._client
 
@@ -308,22 +343,46 @@ class CompletionsServerPolicy(ChatTemplatePolicy):
             "no_stop_trim": True,  # SGLang
         }
 
+    # Statuses worth another try: the server or the proxy in front of it was
+    # busy or restarting. Anything else (400, 404, ...) is a real error.
+    RETRY_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
+
     async def complete(self, prompt_tokens: list[int]) -> Completion:
         import httpx
 
         body = self.request_body(prompt_tokens)
-        for attempt in range(3):
+        log = logging.getLogger(__name__)
+        attempts = self.max_retries + 1
+        for attempt in range(attempts):
+            started = time.monotonic()
             try:
                 response = await self._http().post("/completions", json=body)
-                break
-            except httpx.TimeoutException:
-                if attempt == 2:
-                    raise
-                logging.getLogger(__name__).warning(
-                    "Sampling request timed out; retrying (%d/2)", attempt + 1
+                if response.status_code not in self.RETRY_STATUSES:
+                    break
+                cause = f"HTTP {response.status_code}"
+                error: Exception = httpx.HTTPStatusError(
+                    f"{cause} from the sampling server", request=response.request,
+                    response=response,
                 )
-                await asyncio.sleep(2 ** attempt)
+            except httpx.TransportError as e:
+                # Timeouts and dropped, refused or reset connections alike.
+                cause, error = type(e).__name__, e
+            waited = time.monotonic() - started
+            self.stats["errors"][cause] = self.stats["errors"].get(cause, 0) + 1
+            if attempt == attempts - 1:
+                self.stats["failed"] += 1
+                raise error
+            self.stats["retries"] += 1
+            log.warning(
+                "Sampling request failed after %.1f s (%s); retrying (%d/%d)",
+                waited, cause, attempt + 1, self.max_retries,
+            )
+            await asyncio.sleep(min(2 ** attempt, 15))
         response.raise_for_status()
+        latency = time.monotonic() - started
+        self.stats["requests"] += 1
+        self.stats["latency_s"] += latency
+        self.stats["latency_max_s"] = max(self.stats["latency_max_s"], latency)
         choice = response.json()["choices"][0]
         text = choice.get("text") or ""
         if choice.get("finish_reason") == "stop" and not self._ends_with_stop(text):

@@ -351,6 +351,76 @@ server was $186.58 and the trainer app $10.90. That is the $250 budget; the $300
 about $55 for Day 5. (The usage counter showed $172 at 08:30, with about $40 of the run still
 to go; it appears to count after the $30 monthly credit.)
 
+### Nov 13-14 - An evaluation that stalled, and why
+
+**What we did**
+
+- Downloaded the step-41 adapter from the state volume and deployed `serve_evaluation.py`:
+  vLLM alone on two H100s, serving the base model and the adapter (`a3`) from one endpoint.
+- Ran the course's `scripts/evaluate_checkpoint.py` from the Codespace against that endpoint.
+  Three tries, no scores:
+  1. 128 episodes at once (the script's default): connections broke as soon as the real
+     requests started, and the script gives up on the first failed request.
+  2. A 2-episode test worked, so the server and the adapter were fine.
+  3. 32 episodes at once, retrying dropped connections: it ran, at about 1.25 requests per
+     second. Each model needs about 11,600 requests, so that is two and a half hours per
+     model instead of 15-40 minutes. We stopped it after 75 minutes. The script only reports
+     at the end, so everything it had finished was lost.
+
+**What was wrong**
+
+- The server was healthy the whole time. Its log showed each request answered in 1-3 seconds
+  and only about 3 in flight, while the client had 32 episodes open and an idle CPU.
+- So each episode slot was spending about 26 seconds per request, 2 of them on the server.
+  The rest was waiting. The client's timeout was 600 seconds for everything, including
+  opening a connection: a request that got lost on the way held its episode for ten minutes
+  before the retry. About 4% of requests being lost is enough to produce exactly these
+  numbers (0.04 x 600 s = 24 s per request on average).
+- That loss rate is an inference from the arithmetic, not a measurement. We never saw where
+  the requests went: Modal's front end, or the Codespace's connection to it. The steady
+  stream of retry lines through the run fits it.
+- The same pattern had already appeared on Day 4, with different numbers. The trainer ran
+  inside Modal and lost perhaps one request in tens of thousands, but its client waited
+  7,200 seconds for each. In both runs the damage came from the length of the wait, not from
+  the number of lost requests.
+
+**What we changed** (PR "Day 5: an evaluation that cannot stall quietly")
+
+- `CompletionsServerPolicy`: 10 seconds to open a connection and 120 seconds for a response,
+  retried up to six times after a timeout, a dropped connection or a 5xx answer. It counts
+  its requests, latency and retries by cause.
+- `scottyrl/eval_runner.py`: every finished episode is appended to a file and a rerun
+  continues from it; a progress line every 30 seconds; the run stops by itself if the rate
+  stays under a floor for two minutes with all slots busy.
+- `evaluate` in `run_trainer.py` and `scripts/launch_eval_on_modal.py`: the evaluation runs
+  in a CPU container on Modal, as the Part 5 trainer did, and writes to the same volume.
+
+**What Modal did that surprised us**
+
+- A web endpoint ends any request after 150 seconds (it answers with a redirect to poll for
+  the result). A client timeout longer than that only ever waits for something already lost.
+- The request log (`modal app logs <app> --timestamps`) was the one tool that settled it:
+  duration per request on the server side, to compare with what the client saw.
+- "Inputs in flight" on the dashboard is requests on the server. It said 3 when we expected
+  32, and that gap was the whole story. We read it at first as an evaluation near its end.
+
+**AWS comparison**
+
+On EC2 the client and the model server would usually sit in one VPC, or on one machine, and
+talk over a private address. Here every request crosses Modal's public front end, even from
+another Modal container, so the client has to be written for an unreliable network: short
+timeouts, retries, and saved progress. Mario_Ops never needed that, because its training
+loop and its model were one process.
+
+**Qwen hosting or training note**
+
+- Serving the adapter needs no merge: vLLM loads the base model once and applies the LoRA
+  adapter per request, chosen by the model name (`a3` or the base model's name).
+- The 2-second requests were measured with 3 in flight. What the server does with 32 at once
+  is still unknown; the speed check exists so that finding out costs minutes.
+
+**Spend so far:** about $253. The evening cost about $12 of H100 time and produced no scores.
+
 ## Entry template
 
 ```

@@ -21,6 +21,10 @@ Deploy once (from the repo root), then launch with scripts/launch_on_modal.py:
     uv run modal deploy skyrl_tinker_modal/run_trainer.py
     uv run python scripts/launch_on_modal.py --config configs/p5_textcraft_grpo.yaml
 
+The same app also runs the Part 5 evaluation (`evaluate`, added Day 5):
+scripts/evaluate_checkpoint.py for each model in turn, against the
+`scottyrl-evaluation` server, launched with scripts/launch_eval_on_modal.py.
+
 Watch:     uv run modal app logs -f scottyrl-trainer   (Ctrl-C stops watching only)
 Download:  uv run modal volume get scottyrl-trainer-runs runs/<file> runs/
 Emergency stop: uv run modal app stop scottyrl-trainer
@@ -138,3 +142,113 @@ def train(
     log(f"[runner] finished {run_name} with exit code {code}")
     runs_volume.commit()
     return code
+
+
+# One evaluation prints a progress line every 30 seconds, so ten silent
+# minutes means it is hung.
+EVAL_STALL_S = 10 * 60
+
+
+def model_slug(model: str) -> str:
+    """A file-name-safe form of a served model name (Qwen/Qwen3.5-4B -> Qwen_Qwen3.5-4B)."""
+    return "".join(c if c.isalnum() or c in "-._" else "_" for c in model)
+
+
+@app.function(
+    image=image,
+    volumes={VOL: runs_volume},
+    cpu=2,  # the Part 5 trainer showed 4 cores and 16 GiB were more than needed
+    memory=8192,
+    timeout=TIME_CAP_S + GRACE_S + 10 * 60,
+    nonpreemptible=True,
+    retries=0,
+)
+def evaluate(
+    config: str,
+    server_url: str,
+    models: list[str],
+    tag: str = "p5_eval",
+    k: int = 4,
+    num_tasks: int = 50,
+    concurrency: int = 32,
+    min_rps: float | None = None,
+    overrides: list[str] | None = None,
+    max_retries: int = 2,
+    time_cap_s: int = 3 * 60 * 60,
+) -> int:
+    """Evaluate each of `models` on the server at `server_url`, one after another.
+
+    Files on the volume, per model: runs/<tag>_<model>.jsonl (one line per
+    finished episode; a relaunch continues from it) and runs/<tag>_<model>.json
+    (the final numbers). runs/<tag>.console.log has the terminal output.
+
+    A crashed or hung evaluation is retried up to `max_retries` times and
+    picks up from its saved episodes. One stopped by its own speed check
+    (exit code 3) is not retried and the remaining models are not started:
+    a slow server would only bill for the same slow run again.
+    """
+    import time
+
+    from scottyrl.eval_runner import EXIT_TOO_SLOW
+    from scottyrl.modal_runner import child_env, run_subprocess
+
+    runs_dir = Path(VOL) / "runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    console = runs_dir / f"{tag}.console.log"
+    env = child_env()
+    stop = threading.Event()
+
+    def commit_loop() -> None:
+        while not stop.wait(60):
+            try:
+                runs_volume.commit()
+            except Exception as exc:
+                print(f"[runner] volume commit failed: {exc}", flush=True)
+
+    threading.Thread(target=commit_loop, daemon=True).start()
+
+    def log(msg: str) -> None:
+        print(msg, flush=True)
+        with console.open("a") as f:
+            f.write(msg + "\n")
+
+    start = time.monotonic()
+    code = 0
+    try:
+        for model in models:
+            stem = runs_dir / f"{tag}_{model_slug(model)}"
+            cmd = [
+                "python", f"{REMOTE_REPO}/scripts/evaluate_checkpoint.py",
+                "--config", f"{REMOTE_REPO}/{config}",
+                "--server", server_url, "--model", model,
+                "--k", str(k), "--num-tasks", str(num_tasks),
+                "--concurrency", str(concurrency),
+                "--out", f"{stem}.jsonl", "--summary", f"{stem}.json",
+            ]
+            if min_rps is not None:
+                cmd += ["--min-rps", str(min_rps)]
+            for override in overrides or []:
+                cmd += ["--set", override]
+            shown = " ".join("<server>" if part == server_url else part for part in cmd)
+            for attempt in range(max_retries + 1):
+                time_left = time_cap_s - (time.monotonic() - start)
+                if time_left <= 0:
+                    log("[runner] time cap reached; relaunch to continue from the saved episodes")
+                    return code or 1
+                log(f"[runner] {model}: attempt {attempt + 1} of {max_retries + 1}: {shown}")
+                code, timed_out = run_subprocess(
+                    cmd, cwd=Path(VOL), env=env, console_path=console,
+                    time_left_s=time_left, grace_s=60, stall_s=EVAL_STALL_S,
+                )
+                log(f"[runner] {model}: attempt {attempt + 1} exited with code {code}")
+                if code == 0 or code == EXIT_TOO_SLOW or timed_out:
+                    break
+            if code != 0:
+                reason = "too slow" if code == EXIT_TOO_SLOW else "failed"
+                log(f"[runner] {model} {reason}; stopping here. Finished episodes are saved.")
+                return code
+        log(f"[runner] finished {tag}: all {len(models)} models evaluated")
+        return 0
+    finally:
+        stop.set()
+        runs_volume.commit()
