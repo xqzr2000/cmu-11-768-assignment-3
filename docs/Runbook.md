@@ -267,8 +267,21 @@ In each result, `abandoned_episodes` should be 0; anything else means that score
 Emergency stop: `uv run modal app stop scottyrl-trainer -y`, then
 `uv run modal app stop scottyrl-evaluation -y` (redeploy both before launching again).
 
-## Day 6-7 - Analysis and report
+## Day 6 - Analysis (no GPU, $0)
 
-Tell Claude the evaluation results are pushed and the trajectories are in the Codespace.
-Claude runs the analyses listed under "Adapted plan" in `Plan.md`, then builds the plots and
-`docs/Report.md`: RL findings and the Modal experience side by side.
+The trajectories must be in the Codespace (`runs/p5_textcraft_grpo_trajectories/`, Day 5 step 4).
+
+```bash
+git pull
+uv run python scripts/analyze_p5.py
+git add runs/p5_analysis.json
+git commit -m "Add Part 5 trajectory analysis" && git push
+```
+
+It reads the 2,004 transcripts in a few seconds and writes `runs/p5_analysis.json`. Tell
+Claude it is pushed; Claude writes the findings into `Learning-Progress.md`.
+
+## Day 7 - Report
+
+Claude builds the plots and `docs/Report.md`: RL findings and the Modal experience side by
+side. Nothing to run.
