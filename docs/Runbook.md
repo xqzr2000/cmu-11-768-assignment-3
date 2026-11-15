@@ -175,7 +175,7 @@ for f in p5_textcraft_grpo.jsonl p5_textcraft_grpo.resume.json \
          p5_textcraft_grpo.checkpoints.json p5_textcraft_grpo.console.log; do
   uv run modal volume get scottyrl-trainer-runs runs/$f runs/$f
 done
-uv run modal volume get scottyrl-trainer-runs runs/p5_textcraft_grpo_trajectories runs/p5_textcraft_grpo_trajectories
+uv run modal volume get scottyrl-trainer-runs runs/p5_textcraft_grpo_trajectories runs/
 uv run modal app stop scottyrl-textcraft -y
 uv run modal app list
 git add runs/p5_textcraft_grpo.jsonl runs/p5_textcraft_grpo.resume.json \
@@ -189,7 +189,7 @@ If the runner gave up (no retries left, or the 12-hour cap), continue it with
 Emergency stop at any time: `uv run modal app stop scottyrl-trainer -y` (kills the trainer;
 redeploy `run_trainer.py` before launching again), then `uv run modal app stop scottyrl-textcraft -y`.
 
-## Day 5 - Evaluation, reduced (~$8-12 for the second attempt)
+## Day 5 - Evaluation, reduced (done Nov 14, about $8-9 for the second attempt)
 
 The step-41 model and the base model on the first 50 validation tasks, 4 attempts each: the
 same tasks and settings as the training run's evaluations, so the results extend its curve
@@ -255,8 +255,9 @@ cat runs/p5_eval_a3.json runs/p5_eval_Qwen_Qwen3.5-4B.json
 uv run modal app stop scottyrl-evaluation -y
 uv run modal app list
 
-# trajectories for the analysis (not committed; gitignored)
-uv run modal volume get scottyrl-trainer-runs runs/p5_textcraft_grpo_trajectories runs/p5_textcraft_grpo_trajectories
+# trajectories for the analysis (not committed; gitignored). The destination is the folder
+# to put the directory IN: naming the directory itself fails with "Is a directory".
+uv run modal volume get scottyrl-trainer-runs runs/p5_textcraft_grpo_trajectories runs/
 
 git add runs/p5_eval_*.json runs/p5_eval_*.jsonl
 git commit -m "Add Part 5 evaluation results" && git push
