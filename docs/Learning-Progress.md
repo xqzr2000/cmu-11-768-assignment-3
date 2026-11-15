@@ -673,5 +673,186 @@ By task, out of 50:
 ### Next
 
 Day 6: the analysis from the saved trajectories (2,004 episode transcripts, steps 0-40, in
-the Codespace under `runs/p5_textcraft_grpo_trajectories/`). See "Adapted plan" in `Plan.md`.
+the Codespace under `runs/p5_textcraft_grpo_trajectories/`). Done the same night; see the
+next entry.
+
+## Day 6 (Nov 14) - What the TextCraft model learned, and what stopped it
+
+No GPU. Three sources: the run logs in `runs/`, the per-episode evaluation results from
+Day 5, and `runs/p5_analysis.json`, which `scripts/analyze_p5.py` builds from the 2,004 saved
+transcripts (every evaluation episode at steps 0, 10, 20 and 30, and the training episodes
+that finished during every fifth step). The five questions are the ones in `Plan.md`.
+
+One caution about the transcripts: the step-40 evaluation has 51 of its 200 episodes, because
+the run crashed while it was going. Those 51 are the ones that finished first, so they are the
+short, successful ones (0.84). It is not a result and is left out below.
+
+### 1. How episodes fail
+
+How each evaluation episode ended:
+
+| Step | Solved | Out of turns | Called finish() without the target |
+|---|---|---|---|
+| 0 | 0.12 | 0.73 | 0.15 |
+| 10 | 0.20 | 0.65 | 0.15 |
+| 20 | 0.34 | 0.52 | 0.14 |
+| 30 | 0.50 | 0.41 | 0.10 |
+
+What each turn was, as a share of all turns in those episodes:
+
+| Step | No usable tool call | Recipe lookup | Craft that worked | Craft rejected | Inventory check |
+|---|---|---|---|---|---|
+| 0 | 0.64 | 0.13 | 0.10 | 0.06 | 0.06 |
+| 10 | 0.61 | 0.13 | 0.13 | 0.06 | 0.06 |
+| 20 | 0.43 | 0.15 | 0.24 | 0.10 | 0.07 |
+| 30 | 0.29 | 0.15 | 0.34 | 0.14 | 0.07 |
+
+- **The base model wastes almost two turns in three.** 64% of its turns produce nothing the
+  environment can act on. That, more than wrong recipes, is why it runs out of turns.
+- **Most of what training did was fix that.** The wasted share fell to 29% by step 30, and
+  the turns went to crafting: successful crafts rose from 10% of turns to 34%. Lookups and
+  inventory checks stayed where they were.
+- **The wasted turns come in three kinds**, and they did not shrink equally:
+
+  | Share of all turns | Step 0 | Step 30 |
+  |---|---|---|
+  | Thinking finished, but no parseable `<tool>...</tool>` after it | 0.34 | 0.16 |
+  | Turn ended with the thinking never closed | 0.23 | 0.03 |
+  | Still thinking when the 512-token limit cut it off | 0.08 | 0.11 |
+
+  The second kind all but disappeared. The third did not move: about one turn in ten is
+  still lost to the token limit, and it is now more than a third of the remaining waste.
+  What the first kind looks like (a call in another format, or no call at all) needs a look
+  at a few transcripts; the counts cannot say.
+- **Crafting got only a little more accurate.** Of the craft calls the environment received,
+  62% worked at step 0 and 71% at step 30. The main rejection throughout is a wrong amount
+  of an ingredient (40-50% of all rejections), then ingredients not in the inventory and
+  a target count that does not divide by the recipe's yield. The arithmetic of scaling a
+  recipe is still the model's weakest step.
+- **Giving up early is a steady 10-15%.** These episodes call `finish()` before the target
+  exists. Having the target and never calling `finish()` is rare (1%).
+- **Lost sampling calls did not shape any of this**: abandoned episodes are 1% or less at
+  every step.
+
+### 2. Thinking length against success
+
+- **Longer thinking does not go with success.** Over the first ten turns of an episode,
+  solved and unsolved episodes use the same number of tokens per turn (about 280-290 at
+  every step). Comparing attempts at the same task in the same step, the solved ones used
+  fewer tokens in those turns about 55% of the time: a coin flip.
+- **The raw averages say the opposite, and are misleading.** Over whole episodes, solved
+  ones average about 240 tokens a turn and unsolved ones 150-200. That gap is the wasted
+  turns from question 1: many of them are short completions that stop early, and unsolved
+  episodes are full of them. It is a difference in how many turns do nothing, not in how
+  long the model thinks when it does something.
+- **Tokens per turn rose during training** (165 to 221 in evaluation) for the same reason:
+  fewer short empty turns, not more deliberation.
+
+### 3. Groups with no signal
+
+From the run log: `pass@8` gives the groups with at least one success, so the all-fail and
+all-success groups can be separated at every step.
+
+| Steps | All 8 failed | All 8 succeeded | Mixed (trained on) |
+|---|---|---|---|
+| 1-10 | 54% | 1% | 45% |
+| 11-20 | 38% | 2% | 60% |
+| 21-30 | 30% | 5% | 65% |
+| 31-41 | 29% | 18% | 53% |
+
+- **The waste changed character.** Early, it was tasks nobody could solve. By the end,
+  nearly a fifth of the groups were tasks the model had mastered, and the usable share was
+  falling again.
+- **The all-fail share stopped falling at about 30%.** That matches question 4 below: 36% of
+  the training tasks need more than 22 items crafted, and the model almost never finishes
+  those inside the turn limit.
+- **Over the run, 44% of the generated episodes were never trained on** (2,923 of about
+  5,250 were in mixed groups). GRPO's baseline costs nothing to compute, but on a task with
+  all-or-nothing rewards it throws away a lot of sampling.
+
+### 4. Two shapes of learning, and what sets TextCraft's ceiling
+
+Every TextCraft task records how many different items must be crafted to reach the target
+(`num_craft_steps`). Each needs at least one `craft` call. Evaluation success by that size:
+
+| Items to craft | Tasks (of 50) | Step 0 | Step 10 | Step 20 | Step 30 | Step 41 |
+|---|---|---|---|---|---|---|
+| 14 or fewer | 20 | 0.28 | 0.43 | 0.60 | 0.85 | 0.89 |
+| 15-22 | 7 | 0.04 | 0.14 | 0.39 | 0.68 | 0.89 |
+| 23-31 | 11 | 0.00 | 0.02 | 0.18 | 0.30 | 0.25 |
+| 32 or more | 12 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+
+(Steps 0-30 are from the training server's transcripts, step 41 from the Day 5 evaluation.)
+
+- **Number Search jumped; TextCraft climbed.** Number Search needs one idea, bisection, in
+  episodes of at most ten short turns. Once the policy found it, success went from about 0.4
+  to 0.99 within twenty steps. TextCraft's overall curve rose by 0.1-0.17 every ten steps.
+- **The steady climb is several delayed jumps added together.** Each size class takes off
+  later than the one below it: small tasks first, then 15-22 items, then 23-31. The smooth
+  total hides that.
+- **The turn limit is the ceiling.** When the model solves a task it spends 2.7-3.0 turns per
+  item, and that number did not improve during training (small tasks took about 30 turns at
+  step 0 and at step 30). At that rate 75 turns cover about 26 items. Nothing above 31 items
+  was ever solved, and the 12 tasks with 38 or more are at zero for both models.
+- **Those tasks are not impossible.** One lookup can cover many items, and one craft call can
+  make any multiple, so a task with n items can be done in about n + 2 turns; the largest
+  validation task (55 items) fits in 75. What is missing is efficiency: at step 30 only 34%
+  of turns are successful crafts, and a 38-item task needs more than half.
+- **On the tasks it cannot finish, the model still gets further.** Failed attempts at the
+  largest tasks completed 14% of the recipe tree at step 0 and 42% at step 30. The reward
+  only pays for finishing, so none of that progress produced a training signal.
+- **What did not change:** lookups per turn, items per lookup (about 5), and the share of
+  looked-up items the model had already looked up (24-29%). The policy became reliable at
+  acting, not economical.
+
+### 5. Cost, and where the GPU time went
+
+| | Number Search (one async run, `p3`) | TextCraft (`p5`) |
+|---|---|---|
+| Hardware | 2 H100s | 4 H100s |
+| Training time in the log | 23 minutes | 8.4 hours for 41 steps |
+| Evaluation success | 0.35 to 0.99 | 0.12 to 0.50 (step 30), 0.54 (step 41) |
+| Action tokens trained on | 0.35 million | 27.9 million |
+| Tokens per training sequence | about 470 | about 13,500 |
+| Cost | about $3 of GPU time for the run itself | about $197 (server $186.58, trainer $10.90) |
+| Cost per point of success gained | about 5 cents | about $5 |
+
+- **A hundred times the cost per point.** The Number Search figure counts only the run's own
+  GPU time; with cold starts and probes each of those runs came to roughly $8-10, which
+  leaves the ratio at thirty to forty.
+- **Where the TextCraft time went.** Of the 8.4 hours in the log, the learner was updating
+  for 2.2 hours (26%) and waiting for episodes for 6.1 hours (73%). The run was bound by
+  generation: three GPUs sampling, one mostly idle.
+- **Another two hours went to the stuck requests**: 10.4 hours passed between the first and
+  last log records. The transcripts show the same thing from the inside: episodes sampled by
+  policy version 10 were still finishing at step 25.
+- **What the money bought, in tokens:** about 80 times as many trained tokens as a Number
+  Search run.
+
+### What this says about a next run
+
+Not planned; the assignment ends here. But the analysis points at three things, in order of
+how directly the evidence supports them:
+
+1. **The token limit.** One turn in ten is cut off mid-thought at 512 tokens and training did
+   not reduce it. A higher limit, or a penalty that teaches shorter thinking, targets the
+   largest remaining waste.
+2. **Reward for progress.** A third of the tasks give no signal because finishing is out of
+   reach, yet the model completes up to 42% of them. Partial credit for items crafted would
+   turn those all-fail groups into mixed ones.
+3. **Task mix.** By the end, 18% of groups were all-success. Sampling fewer mastered tasks
+   would put that compute where there is still something to learn.
+
+### For the report
+
+- The turn-type table (question 1) as the main picture of what was learned.
+- The size table (question 4) with the 75-turn line, to explain both the curve's shape and
+  its ceiling.
+- The no-signal split (question 3).
+- The cost table, with both ways of counting the Number Search figure.
+- The thinking result stated carefully: no relation once task and position are held fixed.
+
+### Next
+
+Day 7: plots and `docs/Report.md`.
 
