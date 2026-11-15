@@ -590,3 +590,20 @@ Day 5: evaluate the step-41 model against the base model. The full plan (2 model
 remaining budget allows. To decide next session: a reduced evaluation, for example the first
 50 tasks of each set with 4 attempts (800 episodes, about $15-20).
 
+## Day 5, first attempt (Nov 13-14) - No scores yet
+
+The reduced evaluation was started from the Codespace and stopped after 75 minutes without a
+result. Nothing about the model was learned; what was learned is about clients and servers,
+and it is in `docs/cloud-walker-Modal.md` (Nov 13-14). In short:
+
+- The server answered each request in about 2 seconds. The client waited up to 600 seconds
+  for requests that had been lost on the way, so 32 episodes shared about 3 working slots.
+- A long timeout turns a rare failure into the main cost. Lost requests were a few percent;
+  the wait for each was 300 times the length of a request.
+- An evaluation is a long job like a training run and needs the same things: progress
+  output, saved partial results, and a way to stop itself.
+
+### Next
+
+Day 5 again, with the evaluation running on Modal (`docs/Runbook.md`).
+
